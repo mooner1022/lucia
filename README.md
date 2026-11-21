@@ -13,24 +13,20 @@
 
 ```sh
 git clone https://github.com/mooner1022/lucia.git ~/lucia && cd ~/lucia
+deploy/setup.sh
+```
 
-# 1. sbx 준비(한 번): Docker 로그인, 전역 정책, Claude 로그인
-sbx login
-sbx policy init deny-all
-#    Claude 로그인은 임시 샌드박스에서 /login 한 번(docs/DEPLOY.md 2장)
+`deploy/setup.sh`가 묻고 답하며 끝까지 데려간다: 준비물 확인 → sbx·Claude 로그인 → 설정 파일 → Lucia가 사는 샌드박스 → 빌드와 설치 → 관리 페이지 비밀번호 링크. 이미 된 단계는 건너뛰므로 중간에 멈췄다가 다시 돌려도 된다. 지금 상태만 보려면 `deploy/setup.sh --check`.
 
-# 2. 설정 파일
+손으로 하려면 같은 순서를 명령으로 따라간다.
+
+```sh
+sbx login && sbx policy init deny-all        # 그리고 임시 샌드박스에서 Claude /login (docs/DEPLOY.md 2장)
 mkdir -p ~/.config/lucia && cp deploy/lucia.example.toml ~/.config/lucia/lucia.toml
-
-# 3. Lucia가 사는 샌드박스
-deploy/create-sandbox.sh
-
-# 4. 빌드, 설치, 서비스 시작
-deploy/install.sh
-~/.local/lib/lucia/luciad check          # 모두 ✓인지
-
-# 5. 관리 페이지 비밀번호 링크(터미널에 찍힌다)
-~/.local/lib/lucia/luciad admin-setup
+deploy/create-sandbox.sh                     # Lucia가 사는 샌드박스
+deploy/install.sh                            # 빌드, 설치, 서비스 시작
+~/.local/lib/lucia/luciad check              # 모두 ✓인지
+~/.local/lib/lucia/luciad admin-setup        # 관리 페이지 비밀번호 링크(터미널에 찍힌다)
 ```
 
 링크에서 비밀번호를 정하고 로그인하면 **초기 설정** 화면이 뜬다. 여기서 이름과 프로필 그림, Discord 봇, Google 메일·일정, 앱 푸시(Firebase), 이미지 생성 키를 넣는다. 필수는 대화할 곳 하나(Discord 봇이나 앱)뿐이다.
