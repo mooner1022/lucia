@@ -1,0 +1,51 @@
+# 릴리스(결정 0065): v로 시작하는 태그를 올리면 묶음을 만들어 GitHub 릴리스에 올린다.
+# 묶는 일은 모두 deploy/package.sh가 한다(여기서는 도구를 갖추고 그것을 부를 뿐이다).
+#
+# 받는 쪽: curl -fsSL https://github.com/mooner1022/lucia/releases/latest/download/install.sh | bash
+#
+# Ubuntu 24.04에서 빌드한다: Docker Sandboxes(sbx)가 지원하는 가장 오래된 Ubuntu라, 여기서 만든 바이너리의 glibc가
+# 그보다 새 배포판에서도 돈다.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "lts/*"
+
+      - name: Rust(안정판)
+        run: |
+          rustup toolchain install stable --profile minimal --component clippy
+          rustup default stable
+          rustc --version
+
+      - name: 관리 화면 빌드와 시험
+        run: deploy/build-ui.sh
+
+      - name: 시험(모델을 부르지 않는다)
+        run: cargo test --workspace
+
+      - name: 묶음 만들기
+        run: deploy/package.sh "$GITHUB_REF_NAME"
+
+      - name: 릴리스 올리기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist-release/lucia-x86_64-linux.tar.gz \
+            dist-release/lucia-x86_64-linux.tar.gz.sha256 \
+            dist-release/install.sh \
+            --title "Lucia ${GITHUB_REF_NAME}" \
+            --generate-notes

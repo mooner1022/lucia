@@ -10,6 +10,10 @@
 #   있는 실행(사람이 대화 중인 실행의 쉘)만 지나가게 하고 차단 목록과 사설·내부 주소를 거른다. 데몬도 뜰 때 이
 #   규칙을 설정에 맞춘다([sandbox] native_tools, [scripts] net). 브라우저 프록시 포트는 허용하지 않는다.
 #
+# 받아 쓰는 설치(결정 0065: 레포 자리에 빌드해 둔 luciad와 VERSION이 있다)에서는 캐릭터를 설정 디렉터리
+# (~/.config/lucia/character)에 두고 붙인다. 없을 때만 기본 캐릭터를 복사해 넣으므로, 관리 페이지에서 고친 것이
+# 업데이트로 덮이지 않는다. plugin은 풀어 둔 릴리스의 것을 그대로 붙인다(업데이트가 그 자리의 내용만 바꾼다).
+#
 # 사용법: deploy/create-sandbox.sh
 # 환경 변수: LUCIA_SANDBOX(기본 lucia), LUCIA_WORKSPACE, LUCIA_MCP_PORT(기본 47810), LUCIA_SANDBOX_MEMORY(기본 4g),
 #   LUCIA_PROXY_PORT(기본 47812, 설정 [scripts] proxy_bind의 포트. 0이면 열지 않는다)
@@ -45,9 +49,19 @@ args=(create --name "$NAME" --memory "$MEMORY" --skills off --static-mcp none --
 for host in "${DENY[@]}"; do
   args+=(--deny-network "$host")
 done
+PLUGIN_DIR="${LUCIA_PLUGIN_DIR:-$REPO/plugin}"
+if [[ -n ${LUCIA_CHARACTER_DIR:-} ]]; then
+  CHARACTER_DIR=$LUCIA_CHARACTER_DIR
+elif [[ -x $REPO/luciad && -f $REPO/VERSION ]]; then
+  CHARACTER_DIR="$HOME/.config/lucia/character"
+  mkdir -p "$CHARACTER_DIR"
+  [[ -f $CHARACTER_DIR/character.md ]] || cp -- "$REPO/character/character.md" "$CHARACTER_DIR/character.md"
+else
+  CHARACTER_DIR="$REPO/character"
+fi
 sbx "${args[@]}" claude "$WORKSPACE" \
-  "$REPO/plugin:/opt/lucia/plugin:ro" \
-  "$REPO/character:/opt/lucia/character:ro"
+  "$PLUGIN_DIR:/opt/lucia/plugin:ro" \
+  "$CHARACTER_DIR:/opt/lucia/character:ro"
 
 sbx policy allow network "localhost:$PORT" --sandbox "$NAME"
 if [[ $PROXY_PORT != 0 ]]; then

@@ -28,3 +28,6 @@ token*.json
 .idea/
 .vscode/
 *.swp
+
+# 릴리스 묶음(deploy/package.sh)
+/dist-release/

@@ -19,6 +19,7 @@ mod goals;
 mod images;
 mod inbox;
 mod ledger;
+pub mod maintenance;
 mod memory;
 mod notices;
 mod routines;
@@ -130,6 +131,9 @@ pub enum StoreError {
     /// 받을 수 없는 값(사람이 읽을 까닭).
     #[error("{0}")]
     Invalid(String),
+    /// 저장소 파일을 열거나 복사하다 실패했다(사람이 읽을 까닭, `maintenance`).
+    #[error("{0}")]
+    File(String),
 }
 
 pub type Result<T> = std::result::Result<T, StoreError>;

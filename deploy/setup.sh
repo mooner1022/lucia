@@ -5,8 +5,12 @@
 #   deploy/setup.sh            # 차례로 묻고 진행한다
 #   deploy/setup.sh --check    # 아무것도 바꾸지 않고 지금 상태만 보여 준다
 #
-# 하지 않는 것: sudo가 필요한 일(패키지 설치, kvm 그룹 넣기)은 명령만 알려 준다. 토큰·키 같은 비밀은 묻지 않는다
-# (그것은 설치 뒤 관리 페이지의 "초기 설정"에서 넣는다).
+# 받아 쓰는 설치(결정 0065: 이 스크립트의 레포 자리에 빌드해 둔 luciad와 VERSION이 있다)에서는 빌드하지 않는다.
+# 그때는 Rust와 Node.js가 필요 없다.
+#
+# sudo가 필요한 준비물(kvm 그룹에 넣기, sbx 설치, 빠진 작은 도구)은 Ubuntu 24.04 이상에서만, 실행할 명령을 그대로
+# 보여 주고 물은 뒤에 한다(기본은 하지 않음). 다른 배포판에서는 명령만 알려 준다.
+# 토큰·키 같은 비밀은 묻지 않는다(그것은 설치 뒤 관리 페이지의 "초기 설정"에서 넣는다).
 set -uo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -16,6 +20,9 @@ NODE_BIN="${LUCIA_NODE_BIN:-$HOME/.local/opt/node/bin}"
 SANDBOX="${LUCIA_SANDBOX:-lucia}"
 SOCKET="$HOME/.local/state/sandboxes/sandboxes/sandboxd/sandboxd.sock"
 MIN_RUST="1.93"
+# 받아 쓰는 설치인가(빌드해 둔 바이너리가 이 스크립트의 레포 자리에 있다).
+PREBUILT=0
+[[ -x $REPO/luciad && -f $REPO/VERSION ]] && PREBUILT=1
 CHECK_ONLY=0
 RESTART_NEEDED=0
 TOTAL=8
@@ -152,54 +159,66 @@ diag_line() { sbx_ diagnose 2>&1 | grep -F "$1" | head -n1 | sed 's/^ *//'; }
 
 # ---------- 단계 ----------
 
-preflight() {
-  step 1 "준비물"
-  local missing=0 v
-  [[ $EUID -eq 0 ]] && die "root로 돌리지 않습니다. 데몬을 돌릴 사용자로 실행하세요."
+# 준비물을 본다. 빠진 것 가운데 sudo로 채울 수 있는 것은 NEED_*에 적어 둔다. 빠진 것이 있으면 1.
+NEED_KVM_GROUP=0
+NEED_SBX=0
+NEED_APT=()
+check_requirements() {
+  local missing=0 v tool
+  NEED_KVM_GROUP=0
+  NEED_SBX=0
+  NEED_APT=()
 
   if [[ -e /dev/kvm ]]; then ok "KVM 가상화(/dev/kvm)"; else
-    bad "/dev/kvm이 없습니다. 가상화가 되는 리눅스 서버가 필요합니다."
+    bad "/dev/kvm이 없습니다. 가상화가 되는 리눅스 서버가 필요합니다(BIOS의 가상화 설정, VM이면 중첩 가상화)."
     missing=1
   fi
 
   if id -nG "$USER" 2>/dev/null | tr ' ' '\n' | grep -qx kvm; then ok "kvm 그룹"; else
     bad "사용자 $USER 이(가) kvm 그룹에 없습니다."
-    cmd "sudo usermod -aG kvm $USER   # 넣은 뒤 다시 로그인"
+    NEED_KVM_GROUP=1
     missing=1
   fi
 
   if have sbx; then ok "sbx $(sbx version 2>/dev/null | awk '{print $3; exit}')"; else
-    bad "sbx(Docker Sandboxes)가 없습니다: https://docs.docker.com/ai/sandboxes/"
+    bad "sbx(Docker Sandboxes)가 없습니다: https://docs.docker.com/ai/sandboxes/install/"
+    NEED_SBX=1
     missing=1
   fi
 
-  if have cargo && have rustc; then
-    v=$(rustc --version 2>/dev/null | awk '{print $2}')
-    if [[ -z $v ]]; then
-      bad "rustc가 실행되지 않습니다(기본 툴체인이 없을 수 있습니다)."
-      cmd "rustup default stable"
-      missing=1
-    elif version_ge "$v" "$MIN_RUST"; then ok "Rust $v"; else
-      bad "Rust $v: $MIN_RUST 이상이 필요합니다."
-      cmd "rustup update stable"
+  if [[ $PREBUILT == 1 ]]; then
+    ok "빌드해 둔 바이너리 $(cat "$REPO/VERSION") (Rust와 Node.js는 필요 없습니다)"
+  else
+    if have cargo && have rustc; then
+      v=$(rustc --version 2>/dev/null | awk '{print $2}')
+      if [[ -z $v ]]; then
+        bad "rustc가 실행되지 않습니다(기본 툴체인이 없을 수 있습니다)."
+        cmd "rustup default stable"
+        missing=1
+      elif version_ge "$v" "$MIN_RUST"; then ok "Rust $v"; else
+        bad "Rust $v: $MIN_RUST 이상이 필요합니다."
+        cmd "rustup update stable"
+        missing=1
+      fi
+    else
+      bad "Rust(cargo)가 없습니다: https://www.rust-lang.org/tools/install"
+      note "빌드하지 않고 받아 쓰려면: curl -fsSL https://github.com/mooner1022/lucia/releases/latest/download/install.sh | bash"
       missing=1
     fi
-  else
-    bad "Rust(cargo)가 없습니다: https://www.rust-lang.org/tools/install"
-    missing=1
+
+    if have node; then ok "Node.js $(node --version)"; elif [[ -x $NODE_BIN/node ]]; then
+      ok "Node.js $("$NODE_BIN/node" --version) ($NODE_BIN)"
+    else
+      bad "Node.js가 없습니다(관리 화면 빌드에만 씁니다). PATH에 두거나 $NODE_BIN 에 공식 배포판을 풉니다."
+      note "https://nodejs.org/dist/  ·  다른 곳에 있으면 LUCIA_NODE_BIN=<node가 있는 디렉터리>"
+      missing=1
+    fi
   fi
 
-  if have node; then ok "Node.js $(node --version)"; elif [[ -x $NODE_BIN/node ]]; then
-    ok "Node.js $("$NODE_BIN/node" --version) ($NODE_BIN)"
-  else
-    bad "Node.js가 없습니다(관리 화면 빌드에만 씁니다). PATH에 두거나 $NODE_BIN 에 공식 배포판을 풉니다."
-    note "https://nodejs.org/dist/  ·  다른 곳에 있으면 LUCIA_NODE_BIN=<node가 있는 디렉터리>"
-    missing=1
-  fi
-
-  for tool in sqlite3 python3 systemd-creds systemctl; do
+  for tool in python3 systemd-creds systemctl; do
     if have "$tool"; then ok "$tool"; else
       bad "$tool 이(가) 없습니다."
+      [[ $tool == python3 ]] && NEED_APT+=(python3)
       missing=1
     fi
   done
@@ -207,11 +226,74 @@ preflight() {
     bad "systemd 사용자 세션에 닿지 못합니다(SSH로 로그인한 그 사용자의 셸에서 돌리세요)."
     missing=1
   fi
+  return $missing
+}
 
-  if [[ $missing == 1 ]]; then
-    [[ $CHECK_ONLY == 1 ]] && return 1
-    die "위의 ✗ 항목을 갖춘 뒤 다시 돌려 주세요."
+# sudo로 준비물을 채워도 되는 곳인가: Ubuntu 24.04 이상(Docker가 sbx를 지원하는 곳), apt와 sudo가 있다.
+can_install() {
+  have sudo && have apt-get && [[ -r /etc/os-release ]] || return 1
+  local id version
+  id=$(. /etc/os-release && echo "${ID:-}")
+  version=$(. /etc/os-release && echo "${VERSION_ID:-0}")
+  [[ $id == ubuntu ]] && version_ge "$version" "24.04"
+}
+
+# 명령 하나를 보여 주고, 물은 뒤에 돌린다. 기본은 하지 않는다.
+run_with_consent() {
+  local about=$1
+  shift
+  echo "  $about"
+  cmd "$*"
+  ask "실행할까요?" n || return 1
+  bash -c "$*"
+}
+
+# 빠진 준비물 가운데 sudo로 채울 수 있는 것을 묻고 채운다(명령은 Docker 문서의 것 그대로다).
+offer_install() {
+  [[ $NEED_KVM_GROUP == 1 || $NEED_SBX == 1 || ${#NEED_APT[@]} -gt 0 ]] || return 1
+  if ! can_install; then
+    note "이 배포판에서는 대신 설치하지 않습니다(Ubuntu 24.04 이상에서만 합니다). 아래를 직접 실행한 뒤 다시 돌려 주세요."
+    [[ ${#NEED_APT[@]} -gt 0 ]] && cmd "sudo apt install ${NEED_APT[*]}"
+    [[ $NEED_KVM_GROUP == 1 ]] && cmd "sudo usermod -aG kvm $USER"
+    if [[ $NEED_SBX == 1 ]]; then
+      cmd "curl -fsSL https://get.docker.com | sudo REPO_ONLY=1 sh"
+      cmd "sudo apt install docker-sbx"
+    fi
+    return 1
   fi
+  echo
+  echo "  ${B}빠진 준비물을 채웁니다${N}(sudo 비밀번호를 물을 수 있습니다). 하나씩 묻습니다."
+  local did=0
+  if [[ ${#NEED_APT[@]} -gt 0 ]]; then
+    run_with_consent "빠진 도구를 설치합니다." "sudo apt install ${NEED_APT[*]}" && did=1
+  fi
+  if [[ $NEED_KVM_GROUP == 1 ]]; then
+    run_with_consent "VM을 만들 수 있게 $USER 을(를) kvm 그룹에 넣습니다." "sudo usermod -aG kvm $USER" && did=1
+  fi
+  if [[ $NEED_SBX == 1 ]]; then
+    have curl || run_with_consent "sbx를 받는 데 curl이 필요합니다." "sudo apt install curl" || true
+    if run_with_consent "Docker의 apt 저장소를 더합니다(Docker의 설치 스크립트를 받아 root로 돌립니다)." \
+      "curl -fsSL https://get.docker.com | sudo REPO_ONLY=1 sh"; then
+      run_with_consent "sbx를 설치합니다." "sudo apt install docker-sbx" && did=1
+    fi
+  fi
+  [[ $did == 1 ]]
+}
+
+preflight() {
+  step 1 "준비물"
+  [[ $EUID -eq 0 ]] && die "root로 돌리지 않습니다. 데몬을 돌릴 사용자로 실행하세요."
+  check_requirements && return 0
+  if [[ $CHECK_ONLY == 1 ]]; then
+    [[ $NEED_KVM_GROUP == 1 || $NEED_SBX == 1 ]] && note "진행하면(--check 없이) Ubuntu 24.04 이상에서는 kvm 그룹과 sbx 설치를 물어보고 대신 합니다."
+    return 1
+  fi
+  if offer_install; then
+    echo
+    echo "  다시 확인합니다."
+    check_requirements && return 0
+  fi
+  die "위의 ✗ 항목을 갖춘 뒤 다시 돌려 주세요."
 }
 
 sbx_ready() {
@@ -340,12 +422,21 @@ install_daemon() {
   if [[ -x $BIN && $active == 1 ]]; then
     ok "luciad가 설치돼 돌고 있습니다."
     [[ $CHECK_ONLY == 1 ]] && return 0
-    ask "지금 코드로 다시 빌드해 업데이트할까요?" n || return 0
+    if [[ $PREBUILT == 1 ]]; then
+      ask "받아 둔 바이너리($(cat "$REPO/VERSION"))로 다시 설치할까요?" n || return 0
+    else
+      ask "지금 코드로 다시 빌드해 업데이트할까요?" n || return 0
+    fi
   else
     todo "아직 설치되지 않았습니다."
     [[ $CHECK_ONLY == 1 ]] && return 1
-    note "관리 화면과 데몬을 빌드해 systemd 사용자 서비스로 올립니다. 처음에는 10분쯤 걸립니다."
-    ask "지금 빌드하고 설치할까요?" y || die "설치한 뒤 다시 돌려 주세요: deploy/install.sh"
+    if [[ $PREBUILT == 1 ]]; then
+      note "받아 둔 바이너리를 systemd 사용자 서비스로 올립니다."
+      ask "지금 설치할까요?" y || die "설치한 뒤 다시 돌려 주세요: $REPO/deploy/install.sh"
+    else
+      note "관리 화면과 데몬을 빌드해 systemd 사용자 서비스로 올립니다. 처음에는 10분쯤 걸립니다."
+      ask "지금 빌드하고 설치할까요?" y || die "설치한 뒤 다시 돌려 주세요: deploy/install.sh"
+    fi
   fi
   "$REPO/deploy/install.sh" || die "설치하지 못했습니다. 위의 오류를 고친 뒤 다시 돌려 주세요."
   RESTART_NEEDED=0
@@ -427,8 +518,9 @@ EOF
 
   ${B}끝났습니다.${N}
     로그      journalctl --user -u luciad -f
-    업데이트  git pull && deploy/install.sh
-    자세히    docs/DEPLOY.md
+    업데이트  $([[ $PREBUILT == 1 ]] && echo "curl -fsSL https://github.com/mooner1022/lucia/releases/latest/download/install.sh | bash" || echo "git pull && deploy/install.sh")
+    걷어 내기  $REPO/deploy/uninstall.sh
+    자세히    $([[ $PREBUILT == 1 ]] && echo "$REPO/docs/DEPLOY.md" || echo "docs/DEPLOY.md")
 EOF
 }
 

@@ -61,6 +61,7 @@ mod signals;
 mod skills;
 mod sources;
 mod stickers;
+mod store_cli;
 mod tasks;
 mod tools;
 mod toolsearch;
@@ -138,6 +139,25 @@ enum Command {
     },
     /// 상주 세션 기록을 지금 VM 밖으로 백업한다(데몬은 매일 루틴으로 한다). 모델을 부르지 않는다.
     Backup(ConfigArg),
+    /// 저장소(SQLite)의 일관된 사본을 새 파일로 만든다. 설정을 읽지 않고, 저장소는 읽기 전용으로만 열어
+    /// 마이그레이션하지 않는다(데몬이 돌고 있어도 된다). 사본은 0600이고, 이미 있는 파일은 덮어쓰지 않으며,
+    /// 무결성 검사를 통과하지 못하면 지우고 실패한다. 배포 스크립트가 새 바이너리로 바꾸기 전에 부른다.
+    StoreBackup {
+        /// 원본 저장소 파일(예: ~/.local/share/lucia/lucia.sqlite).
+        #[arg(long)]
+        db: PathBuf,
+        /// 만들 사본 파일. 이미 있으면 실패한다.
+        #[arg(long)]
+        out: PathBuf,
+    },
+    /// 저장소(SQLite)의 배포 전 상태를 `running_tasks=<수>`, `inbox=<수>`, `run_in_flight=<0|1>` 세 줄로
+    /// 찍는다(하는 중인 작업, 받은 편지함, 하는 중인 정기 작업). 설정을 읽지 않고 읽기 전용으로만 열어
+    /// 마이그레이션하지 않는다(데몬이 돌고 있어도 된다). 파일이 없거나 읽을 수 없으면 실패한다.
+    StoreStatus {
+        /// 저장소 파일(예: ~/.local/share/lucia/lucia.sqlite).
+        #[arg(long)]
+        db: PathBuf,
+    },
     /// 이 바이너리에 관리 화면(결정 0061)이 온전히 들어 있는지 본다. 배포 스크립트가 설치 전에 부른다.
     UiCheck,
     /// Lucia의 프로필 이미지(결정 0060)를 보거나 사용자가 직접 정한다(처음 값 넣기). 파일 없이 부르면 지금 것을
@@ -596,6 +616,14 @@ async fn main() -> anyhow::Result<()> {
                 .ok_or_else(|| anyhow::anyhow!("설정에서 백업이 꺼져 있다([backup] enabled)"))?;
             let summary = backup.run(chrono::Utc::now()).await?;
             println!("세션 기록 백업: {summary}");
+            Ok(())
+        }
+        Command::StoreBackup { db, out } => {
+            println!("{}", store_cli::backup(&db, &out)?);
+            Ok(())
+        }
+        Command::StoreStatus { db } => {
+            println!("{}", store_cli::status(&db)?);
             Ok(())
         }
         Command::Poc(args) => poc::run(args).await,
