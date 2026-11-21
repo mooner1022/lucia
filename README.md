@@ -49,6 +49,8 @@ deploy/setup.sh
 
 `deploy/setup.sh`가 묻고 답하며 끝까지 데려간다: 준비물 확인 → sbx·Claude 로그인 → 설정 파일 → Lucia가 사는 샌드박스 → 빌드와 설치 → 관리 페이지 비밀번호 링크. 이미 된 단계는 건너뛰므로 중간에 멈췄다가 다시 돌려도 된다. 지금 상태만 보려면 `deploy/setup.sh --check`.
 
+걷어 낼 때는 `deploy/uninstall.sh`가 반대 순서로 묻고 지운다(`--check`는 남은 것만 보여 준다).
+
 손으로 하려면 같은 순서를 명령으로 따라간다.
 
 ```sh
