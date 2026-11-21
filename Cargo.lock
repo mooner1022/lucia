@@ -662,7 +662,7 @@ dependencies = [
 
 [[package]]
 name = "fake-claude"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "lucia-runner",
  "tokio",
@@ -1303,7 +1303,7 @@ checksum = "5d15f86d12da44cd8d4ec3c73984537eb7f4cadcb9776a575a0a8a05ca11005c"
 
 [[package]]
 name = "lucia-channel"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "lucia-core",
@@ -1321,7 +1321,7 @@ dependencies = [
 
 [[package]]
 name = "lucia-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "serde",
@@ -1330,7 +1330,7 @@ dependencies = [
 
 [[package]]
 name = "lucia-precheck"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "axum",
  "base64 0.23.1",
@@ -1348,7 +1348,7 @@ dependencies = [
 
 [[package]]
 name = "lucia-runner"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "lucia-core",
  "serde",
@@ -1360,7 +1360,7 @@ dependencies = [
 
 [[package]]
 name = "lucia-store"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "lucia-core",
@@ -1372,7 +1372,7 @@ dependencies = [
 
 [[package]]
 name = "luciad"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "argon2",
