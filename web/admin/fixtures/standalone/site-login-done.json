@@ -1,0 +1,9 @@
+{
+  "kind": "standalone",
+  "name": "Lucia",
+  "screen": {
+    "note": "qz-site-done-note",
+    "site": "qz-site-login",
+    "type": "site_login_done"
+  }
+}

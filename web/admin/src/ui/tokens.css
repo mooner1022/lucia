@@ -1,0 +1,203 @@
+/* 디자인 토큰(결정 0061·0062). 색·간격·글자 크기는 여기서만 정한다. 부품(src/ui)이 이것을 쓰고, 화면(src/pages)은 부품만 쓴다.
+   색은 캐릭터 시트에서 온다(web/admin/docs/design.md): 흰 옷감, 쪽빛 띠, 치마의 푸른 번짐, 금선 장식.
+   밝은·어두운 판 모두 WCAG AA(글 4.5:1, 입력 경계·초점 3:1)를 지킨다. tests/a11y.test.ts가 이 파일을 읽어 계산한다. */
+:root {
+  --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR',
+    'Malgun Gothic', 'Segoe UI', Roboto, sans-serif;
+  /* 제목 글꼴(화면 제목, 이름, 로그인, 맺음말에만 쓴다. 본문·라벨·숫자에는 쓰지 않는다). */
+  --font-display: 'Gowun Batang', 'Noto Serif KR', 'Nanum Myeongjo', AppleMyungjo, 'Batang', serif;
+  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, 'D2Coding', monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-body: 0.9375rem;
+  --fs-lg: 1.0625rem;
+  --fs-xl: 1.3125rem;
+  --fs-2xl: 1.75rem;
+
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 0.75rem;
+  --s4: 1rem;
+  --s5: 1.5rem;
+  --s6: 2rem;
+  --s7: 3rem;
+
+  /* 모서리는 둥글고 부드럽게(옷감의 곡선). 단추·배지·띠는 알약 꼴(--r-full)이다. */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 20px;
+  --r-full: 999px;
+
+  /* 이름–값 줄에서 이름 칸의 너비(KV, 좁을 때의 표). 한 화면 안에서 값이 같은 자리에서 시작하게 한다. */
+  --label-w: 7.5rem;
+  --control-h: 2.5rem;
+  --control-h-sm: 2rem;
+  --side-w: 16.5rem;
+  --content-w: 70rem;
+  --bottomnav-h: 3.75rem;
+
+  /* 밝은 판: 달빛 받은 흰 옷감 */
+  --bg: #f3f5fc;
+  --surface: #ffffff;
+  --surface-2: #f0f3fc;
+  --surface-3: #e2e8f8;
+  --border: #d8def2;
+  --border-strong: #7781a8;
+  --text: #1c2143;
+  --text-2: #424a70;
+  --text-3: #596187;
+  --accent: #3848a0;
+  --accent-hover: #2c3a86;
+  --accent-soft: #e5eafb;
+  --accent-text: #3343a0;
+  --on-accent: #ffffff;
+  --focus: #3b6fd8;
+
+  /* 쪽빛 띠(구역 머리의 띠, 지금 화면 표시, 좁은 화면의 위 막대)와 그 위의 글·금선 */
+  --band: #2f3f96;
+  --band-2: #4055b4;
+  --on-band: #ffffff;
+  --on-band-2: #dbe2fa;
+  --band-line: #ecd9ae;
+  /* 장식에만 쓰는 색(글·입력 경계에는 쓰지 않는다): 금선, 하늘, 번짐, 치맛단, 치맛단의 꽃잎, 빛, 흩날리는 꽃잎 */
+  --gold: #b89454;
+  --sky: #dfe7fb;
+  --wash: #e6ecfc;
+  --hem: #c4d3f6;
+  --petal: #ffffff;
+  --glow: #ffffff;
+  --drift: #9db0ec;
+
+  --ok: #17694c;
+  --ok-soft: #dff3ea;
+  --warn: #855600;
+  --warn-soft: #fbefd6;
+  --bad: #ad2643;
+  --bad-soft: #fce7ec;
+  --info: #235db5;
+  --info-soft: #e2edfc;
+  --muted: #596187;
+  --muted-soft: #eaedf7;
+
+  --danger: #ad2643;
+  --danger-hover: #8f1d36;
+  --on-danger: #ffffff;
+
+  --shadow-1: 0 1px 2px rgb(47 63 150 / 0.06), 0 6px 18px rgb(47 63 150 / 0.06);
+  --shadow-2: 0 10px 34px rgb(28 33 67 / 0.18);
+  --shadow-band: 0 2px 8px rgb(47 63 150 / 0.28);
+  --scrim: rgb(20 24 54 / 0.42);
+  /* 흩날리는 꽃잎의 진하기와 치맛단 꽃잎의 진하기 */
+  --drift-alpha: 0.6;
+  --petal-alpha: 0.8;
+}
+
+/* 어두운 판(달밤): 기기 설정을 따르되, 사용자가 고르면 그쪽을 쓴다(data-theme). 값은 아래 두 묶음이 같아야 한다. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0c1024;
+    --surface: #141936;
+    --surface-2: #1a2044;
+    --surface-3: #262d5a;
+    --border: #2b3263;
+    --border-strong: #737db4;
+    --text: #eceefb;
+    --text-2: #c2c8e8;
+    --text-3: #9fa7d0;
+    --accent: #a3b4ff;
+    --accent-hover: #bac7ff;
+    --accent-soft: #232c66;
+    --accent-text: #b3c0ff;
+    --on-accent: #0c1024;
+    --focus: #bac7ff;
+
+    --band: #33439f;
+    --band-2: #4458bd;
+    --on-band: #ffffff;
+    --on-band-2: #dde3fb;
+    --band-line: #ecd9ae;
+    --gold: #d6bd8a;
+    --sky: #171f4b;
+    --wash: #171d42;
+    --hem: #222c66;
+    --petal: #aebcf5;
+    --glow: #4a5cc0;
+    --drift: #aebcf5;
+
+    --ok: #62d2a2;
+    --ok-soft: #10302a;
+    --warn: #e9b65c;
+    --warn-soft: #382b12;
+    --bad: #ff93a6;
+    --bad-soft: #3d1624;
+    --info: #86b8ff;
+    --info-soft: #142850;
+    --muted: #9fa7d0;
+    --muted-soft: #1f2548;
+
+    --danger: #ff93a6;
+    --danger-hover: #ffadbb;
+    --on-danger: #0c1024;
+
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 0.35), 0 6px 18px rgb(0 0 0 / 0.22);
+    --shadow-2: 0 10px 34px rgb(0 0 0 / 0.55);
+    --shadow-band: 0 2px 8px rgb(0 0 0 / 0.4);
+    --scrim: rgb(4 6 18 / 0.66);
+    --drift-alpha: 0.32;
+    --petal-alpha: 0.2;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0c1024;
+  --surface: #141936;
+  --surface-2: #1a2044;
+  --surface-3: #262d5a;
+  --border: #2b3263;
+  --border-strong: #737db4;
+  --text: #eceefb;
+  --text-2: #c2c8e8;
+  --text-3: #9fa7d0;
+  --accent: #a3b4ff;
+  --accent-hover: #bac7ff;
+  --accent-soft: #232c66;
+  --accent-text: #b3c0ff;
+  --on-accent: #0c1024;
+  --focus: #bac7ff;
+
+  --band: #33439f;
+  --band-2: #4458bd;
+  --on-band: #ffffff;
+  --on-band-2: #dde3fb;
+  --band-line: #ecd9ae;
+  --gold: #d6bd8a;
+  --sky: #171f4b;
+  --wash: #171d42;
+  --hem: #222c66;
+  --petal: #aebcf5;
+  --glow: #4a5cc0;
+  --drift: #aebcf5;
+
+  --ok: #62d2a2;
+  --ok-soft: #10302a;
+  --warn: #e9b65c;
+  --warn-soft: #382b12;
+  --bad: #ff93a6;
+  --bad-soft: #3d1624;
+  --info: #86b8ff;
+  --info-soft: #142850;
+  --muted: #9fa7d0;
+  --muted-soft: #1f2548;
+
+  --danger: #ff93a6;
+  --danger-hover: #ffadbb;
+  --on-danger: #0c1024;
+
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.35), 0 6px 18px rgb(0 0 0 / 0.22);
+  --shadow-2: 0 10px 34px rgb(0 0 0 / 0.55);
+  --shadow-band: 0 2px 8px rgb(0 0 0 / 0.4);
+  --scrim: rgb(4 6 18 / 0.66);
+  --drift-alpha: 0.32;
+  --petal-alpha: 0.2;
+}

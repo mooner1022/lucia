@@ -1,0 +1,56 @@
+# 외부 노출(결정 0043): Traefik의 Docker 라벨로 공개 주소를 호스트의 데몬(systemd 서비스)에 잇는다.
+# Traefik 설정 파일은 건드리지 않는다. 이 컨테이너는 아무 일도 하지 않고(잠만 잔다) 라벨만 들고 있다.
+# Traefik이 라벨의 loadbalancer.server.url로 호스트의 데몬 주소에 직접 붙는다.
+#
+# 값은 이 디렉터리의 .env에 둔다(레포에 올라가지 않는다). 처음에는 env.example을 복사해 고친다:
+#   cp deploy/traefik/env.example deploy/traefik/.env
+#
+#   docker compose -f deploy/traefik/docker-compose.yml up -d     # 켜기
+#   docker compose -f deploy/traefik/docker-compose.yml down      # 밖에서 닫기(데몬은 그대로)
+#
+# 흐름: (CDN·프록시) → Traefik(LUCIA_TRAEFIK_ENTRYPOINT) → 관리 페이지(LUCIA_ADMIN_UPSTREAM) / 접속 API(/v1, LUCIA_API_UPSTREAM)
+# - 앞에 Cloudflare 같은 프록시가 있으면 실제 접속 주소를 머리에 담아 주는 미들웨어를 LUCIA_TRAEFIK_MIDDLEWARES에 적고,
+#   데몬 설정 [public] real_ip_header에 그 머리 이름을 적는다(X-Forwarded-For는 "실제, 엣지" 순이라 쓰지 못한다).
+#   미들웨어가 없으면 비워 둔다(아래의 아무 일도 하지 않는 미들웨어가 쓰인다).
+# - 인증서 발급(certresolver)은 걸지 않았다: 앞의 프록시가 TLS를 끝내면 TLS 챌린지가 실패한다. Traefik이 직접 받게
+#   하려면 라우터 둘에 tls.certresolver 라벨을 더한다.
+# - 데몬 설정 [public]의 trusted_proxies는 Traefik 컨테이너가 데몬에 붙을 때의 주소다. Traefik 컨테이너를 다시 만들어
+#   주소가 바뀌면 데몬 설정을 고친다(밖에서 400이 나면 이것부터 본다).
+
+name: lucia-traefik
+
+services:
+  lucia-route:
+    image: alpine:latest
+    container_name: lucia-route
+    command: ["sleep", "infinity"]
+    init: true
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    networks: [proxy]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${LUCIA_TRAEFIK_NETWORK:-proxy}"
+      # 미들웨어를 정하지 않았을 때 쓰는, 아무 일도 하지 않는 미들웨어(요청에 표시 머리 하나만 붙인다).
+      - "traefik.http.middlewares.lucia-pass.headers.customrequestheaders.X-Lucia-Route=1"
+      # 관리 페이지(밖에서는 2단계 인증 필요)
+      - "traefik.http.routers.lucia-admin.rule=Host(`${LUCIA_PUBLIC_HOST:?deploy/traefik/.env에 LUCIA_PUBLIC_HOST를 적는다}`)"
+      - "traefik.http.routers.lucia-admin.entrypoints=${LUCIA_TRAEFIK_ENTRYPOINT:-websecure}"
+      - "traefik.http.routers.lucia-admin.tls=true"
+      - "traefik.http.routers.lucia-admin.middlewares=${LUCIA_TRAEFIK_MIDDLEWARES:-lucia-pass@docker}"
+      - "traefik.http.routers.lucia-admin.service=lucia-admin"
+      - "traefik.http.services.lucia-admin.loadbalancer.server.url=${LUCIA_ADMIN_UPSTREAM:?deploy/traefik/.env에 LUCIA_ADMIN_UPSTREAM을 적는다}"
+      # 접속 API(/v1: WebSocket·HTTP). 규칙이 길어 관리 페이지보다 먼저 맞는다.
+      - "traefik.http.routers.lucia-api.rule=Host(`${LUCIA_PUBLIC_HOST}`) && PathPrefix(`/v1`)"
+      - "traefik.http.routers.lucia-api.entrypoints=${LUCIA_TRAEFIK_ENTRYPOINT:-websecure}"
+      - "traefik.http.routers.lucia-api.tls=true"
+      - "traefik.http.routers.lucia-api.middlewares=${LUCIA_TRAEFIK_MIDDLEWARES:-lucia-pass@docker}"
+      - "traefik.http.routers.lucia-api.service=lucia-api"
+      - "traefik.http.services.lucia-api.loadbalancer.server.url=${LUCIA_API_UPSTREAM:?deploy/traefik/.env에 LUCIA_API_UPSTREAM을 적는다}"
+
+networks:
+  proxy:
+    external: true
+    name: ${LUCIA_TRAEFIK_NETWORK:-proxy}

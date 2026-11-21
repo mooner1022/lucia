@@ -1,0 +1,16 @@
+[package]
+name = "lucia-store"
+description = "SQLite 저장소: 스키마·마이그레이션, 작업·세션·에피소드·원장·스케줄"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+lucia-core.workspace = true
+chrono = { version = "0.4.45", features = ["serde"] }
+rusqlite = { version = "0.43.0", features = ["bundled"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+thiserror = "2.0.21"

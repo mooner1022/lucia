@@ -1,0 +1,35 @@
+# Lucia 데몬(systemd 사용자 유닛). 설치와 배포는 deploy/install.sh가 한다.
+#
+# 바이너리는 레포의 target/이 아니라 고정 경로(~/.local/lib/lucia/luciad)에서 돈다. 개발 중 빌드가 운영 바이너리를
+# 바꾸지 않게 하려는 것이다(재시작 때 시험하지 않은 빌드가 운영 저장소를 마이그레이션하지 않게).
+# 로그인하지 않아도 부팅 때 뜨게 하려면 linger가 필요하다: loginctl enable-linger $USER
+#
+# 비밀은 여기 넣지 않는다. 자격 증명 파일은 관리 페이지가 ~/.config/lucia/credentials/에 만든다.
+
+[Unit]
+Description=Lucia 개인 비서 데몬
+After=network-online.target lucia-sbx.service
+# sbx 데몬은 따로 돈다(deploy/lucia-sbx.service). 다른 곳에서 이미 돌고 있으면 그 유닛이 실패해도 괜찮다.
+Wants=lucia-sbx.service
+# 재시작이 거듭되면 멈춘다. Discord는 하루 IDENTIFY 1,000회를 넘기면 토큰을 초기화한다.
+StartLimitIntervalSec=1h
+StartLimitBurst=5
+
+[Service]
+Type=notify
+NotifyAccess=main
+ExecStart=%h/.local/lib/lucia/luciad run
+# deploy/install.sh가 설치할 때 이 레포의 실제 위치로 바꿔 넣는다.
+WorkingDirectory=%h/lucia
+Restart=on-failure
+RestartSec=30s
+# 스케줄러 루프가 최대 60초마다 watchdog 신호를 보낸다.
+WatchdogSec=180s
+# 데몬이 부르는 sbx, sg는 /usr/bin에 있다.
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=RUST_LOG=info,rmcp=warn
+UMask=0077
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=default.target

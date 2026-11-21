@@ -1,0 +1,8 @@
+{
+  "kind": "standalone",
+  "name": "Lucia",
+  "screen": {
+    "site": "qz-site-login",
+    "type": "site_login_busy"
+  }
+}

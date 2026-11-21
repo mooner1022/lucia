@@ -1,0 +1,9 @@
+{
+  "kind": "standalone",
+  "name": "Lucia",
+  "screen": {
+    "error": null,
+    "external": false,
+    "type": "login"
+  }
+}

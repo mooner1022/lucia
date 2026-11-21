@@ -1,0 +1,9 @@
+{
+  "kind": "standalone",
+  "name": "Lucia",
+  "screen": {
+    "ok": true,
+    "text": "qz-returned-ok",
+    "type": "google_returned"
+  }
+}

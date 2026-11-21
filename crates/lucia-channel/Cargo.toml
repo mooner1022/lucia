@@ -1,0 +1,26 @@
+[package]
+name = "lucia-channel"
+description = "채널 어댑터 트레이트, 공통 계약 테스트, Discord 어댑터"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+chrono = "0.4.45"
+lucia-core.workspace = true
+serde = { version = "1.0.229", features = ["derive"] }
+# 서버 스티커 목록을 직접 읽는다(결정 0044: available이 빠졌을 때 true로 보려고).
+serde_json = "1.0.154"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["sync", "macros", "rt"] }
+tokio-util = "0.7.20"
+tracing = "0.1.44"
+twilight-gateway = "0.18.0"
+twilight-http = "0.18.0"
+twilight-model = "0.18.0"
+
+[dev-dependencies]
+# 카드 임베드가 Discord 한도 안인지 시험에서 확인한다(twilight-http가 이미 쓰는 같은 판).
+twilight-validate = "0.18.0"

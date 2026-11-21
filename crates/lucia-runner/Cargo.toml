@@ -1,0 +1,16 @@
+[package]
+name = "lucia-runner"
+description = "실행 백엔드: claude -p 호출, stream-json 파서, sbx 래퍼"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+lucia-core.workspace = true
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["process", "io-util", "time", "rt", "macros", "fs"] }
+uuid = "1.29.2"

@@ -1,0 +1,5 @@
+{
+  "name": "lucia-p2-guard",
+  "version": "0.0.1",
+  "description": "PoC P2 시험용: 표식이 든 Bash 명령을 PreToolUse 훅으로 막는다"
+}

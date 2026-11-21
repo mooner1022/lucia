@@ -1,0 +1,26 @@
+# sbx 데몬(sandboxd, systemd 사용자 유닛). Lucia 데몬과 따로 둔다.
+#
+# 왜 따로 두나: sbx 데몬은 처음 부른 sbx CLI가 띄우고 그 프로세스의 그룹과 cgroup을 물려받는다. luciad 유닛이
+# 띄우면 luciad를 재시작할 때 systemd가 cgroup째 정리해 VM(상주 세션, 로그인된 브라우저 프로필)까지 멈춘다.
+# 사용자 systemd 관리자에는 kvm 그룹이 없을 수 있어 sg kvm으로 띄운다(PoC P1).
+#
+# 이미 다른 곳(예: tmux 셸)에서 sbx 데몬이 돌고 있으면 이 유닛은 실패로 끝나고, luciad는 그 데몬을 그대로 쓴다.
+# 설치는 deploy/install.sh가 한다.
+
+[Unit]
+Description=Lucia용 sbx 데몬(sandboxd)
+
+[Service]
+Type=simple
+# 이미 살아 있는 sbx 데몬이 있으면(소켓에 연결된다) 건너뛴다. `sbx daemon status`는 데몬을 자동으로 띄울 수 있고,
+# 소켓 파일은 비정상 종료 뒤에도 남을 수 있어 연결로 확인한다.
+ExecCondition=/usr/bin/python3 -I -c "import socket,sys,os; s=socket.socket(socket.AF_UNIX); p=os.path.expanduser('~/.local/state/sandboxes/sandboxes/sandboxd/sandboxd.sock'); sys.exit(1 if s.connect_ex(p)==0 else 0)"
+# 명령: `sbx daemon start --help`(앞에서 돈다, --detach가 없으면).
+ExecStart=/usr/bin/sg kvm -c '/usr/bin/sbx daemon start'
+Restart=on-failure
+RestartSec=30s
+# 데몬을 멈출 때만 VM이 멈춘다. luciad 재시작과는 상관없다.
+KillMode=mixed
+
+[Install]
+WantedBy=default.target

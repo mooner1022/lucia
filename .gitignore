@@ -1,0 +1,30 @@
+# Rust
+/target/
+
+# 런타임 데이터: 저장소, 로그, 백업은 레포에 두지 않는다
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+/var/
+/logs/
+*.log
+
+# 비밀: 인증 정보는 systemd-creds나 sbx secret에만 둔다
+.env
+.env.*
+*.cred
+*.key
+*.pem
+secrets/
+credentials*.json
+token*.json
+
+# PoC 원시 기록: 정리한 결과만 poc/RESULTS.md와 fixtures에 남긴다
+/poc/raw/
+
+# 편집기
+.idea/
+.vscode/
+*.swp

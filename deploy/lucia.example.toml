@@ -1,0 +1,114 @@
+# Lucia 설정 예시. 실제 설정은 ~/.config/lucia/lucia.toml(레포 밖).
+# 비밀은 여기에 쓰지 않는다(자격 증명 파일은 credentials_dir, docs/PLAN.md §4).
+
+timezone = "Asia/Seoul"
+data_dir = "~/.local/share/lucia"
+credentials_dir = "~/.config/lucia/credentials"
+
+[sandbox]
+name = "lucia"
+# 호스트와 VM 안에서 같은 경로(~는 홈으로 펼친다).
+workdir = "~/.local/share/lucia/workspace"
+plugin_dir = "/opt/lucia/plugin"
+character_file = "/opt/lucia/character/character.md"
+timeout_secs = 300
+# 사람이 대화 중인 실행의 상한(초, 결정 0059). 쉘로 하는 긴 일을 끊지 않게 길게 둔다. 멈추려면 대화에서 "그만".
+# chat_timeout_secs = 3600
+# 사람이 대화 중인 실행에 Claude Code 내장 도구(Bash, Read, Write, Edit, Glob, Grep)를 연다(결정 0059).
+# 쉘의 인터넷은 [scripts] net의 출구 프록시를 같이 쓴다.
+# native_tools = true
+# 내장 웹 검색(결정 0003). 검색은 Anthropic 서버가 하므로 VM 네트워크 출구를 열지 않는다.
+web_search = true
+# 메일 발송 승인 요청이 만료되기까지의 시간(무응답은 거부).
+approval_ttl_hours = 24
+
+[mcp]
+# loopback 고정 포트. 샌드박스 정책에서 localhost:<포트>를 허용한다(deploy/create-sandbox.sh).
+bind = "127.0.0.1:47810"
+
+[models]
+# 주 모델의 기본값. 관리 페이지 "캐릭터"나 /모델 명령으로 고르면 그 값이 둘을 대신한다(결정 0055).
+chat = "sonnet"
+briefing = "sonnet"
+
+# [memory] core_max_bytes는 결정 0007(기억 항목) 뒤로 쓰지 않는다. 있어도 뜨도록 받기만 한다.
+# 항목 크기 상한은 저장소가 정한다(세부 정보 8 KB, 200개).
+
+[session]
+# 상주 세션은 교대 대신 compact로 줄인다(결정 0004). 실행 뒤 컨텍스트가 compact_context_tokens를 넘거나,
+# idle_compact_minutes 동안 조용하고 idle_compact_min_tokens를 넘으면 /compact 한다.
+# 창은 100만 토큰이지만, 1시간 넘게 쉬면 캐시가 사라져 첫 메시지가 컨텍스트 전체를 다시 쓴다(결정 0004 "기준값 조정").
+compaction = true
+compact_context_tokens = 200000
+idle_compact_minutes = 60
+idle_compact_min_tokens = 100000
+# compact가 듣지 않을 때의 안전 상한(넘으면 새 세션). compact_context_tokens보다 커야 한다(아니면 설정 거부).
+# rotate_after_days는 compaction = false일 때만 쓴다.
+rotate_context_tokens = 250000
+rotate_after_days = 7
+
+[[routines]]
+id = "morning-briefing"
+cron = "30 7 * * *"
+action = "morning_briefing"
+max_delay_secs = 3600
+
+
+# 사전 체크(모델 없음)는 데몬이 관리 페이지의 확인 간격(기본 5분)마다 한다(결정 0031). 예전의 매시
+# `hourly-precheck` 항목은 필요 없다(남아 있어도 한 번 더 확인할 뿐이다).
+
+[admin]
+# 관리 페이지(D8). 집 LAN 주소와 localhost에만 바인드한다. MCP와 다른 포트. 밖에서 열려면 아래 [public].
+# 다른 기기에서 열려면 이 서버의 LAN 주소를 더한다. 예: bind = ["192.168.0.10:8780", "127.0.0.1:8780"]
+bind = ["127.0.0.1:8780"]
+
+# 접속 API(결정 0021·0043): 자체 앱이 붙는 WebSocket(ws://<주소>/v1/ws)과 HTTP(/v1/…). 비우면 열지 않는다.
+# 집 LAN·VPN 주소에만 바인드한다. 토큰은 관리 페이지 "연결" 화면에서 발급한다. 앱 개발자용 설명: docs/app-api.md
+[gateway]
+bind = []
+# bind = ["192.168.0.10:8790"]
+
+# 외부 노출(결정 0043): 리버스 프록시(TLS를 맡는다) 뒤의 공개 주소. 비우면 집 LAN·VPN에서만 열린다.
+# 프록시는 위 bind 주소로 붙고, 데몬은 trusted_proxies에서 온 요청만 외부로 본다(X-Forwarded-For).
+# 밖에서 관리 페이지에 로그인하려면 집 네트워크에서 2단계 인증을 먼저 켠다. Traefik 연결: deploy/traefik/docker-compose.yml
+# 앞에 Cloudflare가 있으면 real_ip_header를 쓴다(X-Forwarded-For 오른쪽에 Cloudflare 주소가 붙는다).
+# [public]
+# admin_url = "https://lucia.example.com"
+# gateway_url = "https://lucia.example.com"      # 같은 호스트면 Traefik이 /v1을 접속 API로 나눈다
+# trusted_proxies = ["172.18.0.3", "172.18.0.11"] # Traefik 컨테이너의 주소
+# real_ip_header = "X-Real-Ip"
+
+# 상주 세션 기록(VM 안 ~/.claude/projects)을 하루 한 번 <data_dir>/session-backup/<날짜>로 복사한다.
+# 세션 기록에는 메일 내용이 들어 있으므로 0700 디렉터리에 둔다. 손으로 하려면 `luciad backup`.
+[backup]
+enabled = true
+cron = "0 4 * * *"
+keep_days = 14
+
+[browser]
+# 로그인 프로필을 유지하는 전용 브라우저(결정 0006·0008). deploy/create-browser-sandbox.sh로 만든 뒤 켠다.
+# 갈 수 있는 곳은 차단 목록 방식이다(사설·내부 주소와 관리 페이지 "막는 곳"만 막는다).
+enabled = false
+sandbox = "lucia-browser"
+idle_minutes = 10
+# 로그인 칸을 미리 정해 둔 내장 프로필(지금 있는 것: "quasarzone"). 비워 두어도 https 사이트는 로그인 칸을 찾아서 로그인한다.
+sites = []
+# 브라우저 출구 프록시(SOCKS5, 루프백만). 샌드박스는 이 포트 하나만 허용한다(스크립트의 LUCIA_BROWSER_PROXY_PORT).
+proxy_bind = "127.0.0.1:47811"
+# 로그인 입력 링크의 앞부분. 비우면 관리 페이지의 첫 사설 주소를 쓴다.
+# form_base_url = "http://192.168.0.2:8780"
+login_input_minutes = 10
+
+[scripts]
+# Lucia가 쓴 Python 코드(code_run, 스킬 스크립트, 반복 루틴)를 돌리는 전용 샌드박스(결정 0025).
+# deploy/create-script-sandbox.sh로 만든 뒤 켠다. 도구는 표준 입출력 다리로 부른다.
+# 끄면 code_run·skill_run이 "꺼져 있다"고 답하고 스크립트 루틴은 돌지 않는다(스크립트 없는 루틴은 돈다).
+enabled = false
+sandbox = "lucia-script"
+# 대화 중 실행의 상한(초, MCP 요청이 60초에 끊기므로 55 이하)과 루틴 스크립트의 상한(초).
+chat_timeout_secs = 45
+routine_timeout_secs = 120
+# 사람이 대화 중인 code_run의 코드가 바깥 인터넷에 직접 나가게 한다(결정 0058). 데몬의 출구 프록시(통행증, 차단 목록,
+# 사설·내부 주소 거르기)를 거친다. 스크립트 샌드박스는 이 포트 하나만 허용한다(데몬이 뜰 때 규칙을 확인한다).
+# net = true
+# proxy_bind = "127.0.0.1:47812"

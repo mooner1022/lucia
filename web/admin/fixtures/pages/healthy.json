@@ -1,0 +1,990 @@
+[
+  {
+    "data": {
+      "extra": null,
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "overview",
+      "path": "/",
+      "title": "홈"
+    },
+    "name": "/",
+    "status": 200,
+    "url": "/"
+  },
+  {
+    "data": {
+      "extra": null,
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "work",
+      "path": "/work",
+      "title": "할 일"
+    },
+    "name": "/work",
+    "status": 200,
+    "url": "/work"
+  },
+  {
+    "data": {
+      "extra": null,
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "automation",
+      "path": "/automation",
+      "title": "자동화"
+    },
+    "name": "/automation",
+    "status": 200,
+    "url": "/automation"
+  },
+  {
+    "data": {
+      "extra": {
+        "filter": "all"
+      },
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "activity",
+      "path": "/activity",
+      "title": "활동"
+    },
+    "name": "/activity",
+    "status": 200,
+    "url": "/activity"
+  },
+  {
+    "data": {
+      "extra": {
+        "query": "",
+        "view": "list"
+      },
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "memory",
+      "path": "/memory",
+      "title": "기억"
+    },
+    "name": "/memory",
+    "status": 200,
+    "url": "/memory"
+  },
+  {
+    "data": {
+      "extra": {
+        "skills": [
+          {
+            "created_at": "2026-11-10T00:00:00Z",
+            "description": "qz-sk-pending-desc",
+            "footprint": {
+              "hosts": [
+                "a.example.test"
+              ],
+              "tools": [
+                "mail_search"
+              ]
+            },
+            "last_used_at": null,
+            "pinned": false,
+            "revision": 2,
+            "script_tools": [
+              "qz-sk-pending-tool"
+            ],
+            "slug": "qz-sk-pending",
+            "source": "retro",
+            "status": "Pending",
+            "successes": 3,
+            "task_id": null,
+            "title": "qz-sk-pending-title",
+            "ui": {
+              "can_approve": true,
+              "can_restore": false,
+              "footprint": "도구: mail_search · 사이트: a.example.test",
+              "source_label": "회고",
+              "status_label": "승인 대기",
+              "tone": "warn",
+              "usable": false
+            },
+            "updated_at": "2026-11-15T00:00:00Z",
+            "uses": 5
+          },
+          {
+            "created_at": "2026-11-10T00:00:00Z",
+            "description": "qz-sk-trial-desc",
+            "footprint": {
+              "hosts": [
+                "a.example.test"
+              ],
+              "tools": [
+                "mail_search"
+              ]
+            },
+            "last_used_at": null,
+            "pinned": false,
+            "revision": 2,
+            "script_tools": null,
+            "slug": "qz-sk-trial",
+            "source": "retro",
+            "status": "Trial",
+            "successes": 3,
+            "task_id": null,
+            "title": "qz-sk-trial-title",
+            "ui": {
+              "can_approve": false,
+              "can_restore": false,
+              "footprint": "도구: mail_search · 사이트: a.example.test",
+              "source_label": "회고",
+              "status_label": "시험 중",
+              "tone": "warn",
+              "usable": true
+            },
+            "updated_at": "2026-11-15T00:00:00Z",
+            "uses": 5
+          },
+          {
+            "created_at": "2026-11-10T00:00:00Z",
+            "description": "qz-sk-active-desc",
+            "footprint": {
+              "hosts": [
+                "a.example.test"
+              ],
+              "tools": [
+                "mail_search"
+              ]
+            },
+            "last_used_at": null,
+            "pinned": true,
+            "revision": 2,
+            "script_tools": null,
+            "slug": "qz-sk-active",
+            "source": "chat",
+            "status": "Active",
+            "successes": 3,
+            "task_id": "qz-sk-active-task",
+            "title": "qz-sk-active-title",
+            "ui": {
+              "can_approve": false,
+              "can_restore": false,
+              "footprint": "도구: mail_search · 사이트: a.example.test",
+              "source_label": "사용자 요청",
+              "status_label": "활성",
+              "tone": "ok",
+              "usable": true
+            },
+            "updated_at": "2026-11-15T00:00:00Z",
+            "uses": 5
+          },
+          {
+            "created_at": "2026-11-10T00:00:00Z",
+            "description": "qz-sk-stale-desc",
+            "footprint": {
+              "hosts": [
+                "a.example.test"
+              ],
+              "tools": [
+                "mail_search"
+              ]
+            },
+            "last_used_at": null,
+            "pinned": false,
+            "revision": 2,
+            "script_tools": null,
+            "slug": "qz-sk-stale",
+            "source": "retro",
+            "status": "Stale",
+            "successes": 3,
+            "task_id": null,
+            "title": "qz-sk-stale-title",
+            "ui": {
+              "can_approve": false,
+              "can_restore": true,
+              "footprint": "도구: mail_search · 사이트: a.example.test",
+              "source_label": "회고",
+              "status_label": "오래됨",
+              "tone": "muted",
+              "usable": false
+            },
+            "updated_at": "2026-11-15T00:00:00Z",
+            "uses": 5
+          },
+          {
+            "created_at": "2026-11-10T00:00:00Z",
+            "description": "qz-sk-archived-desc",
+            "footprint": {
+              "hosts": [
+                "a.example.test"
+              ],
+              "tools": [
+                "mail_search"
+              ]
+            },
+            "last_used_at": null,
+            "pinned": false,
+            "revision": 2,
+            "script_tools": null,
+            "slug": "qz-sk-archived",
+            "source": "retro",
+            "status": "Archived",
+            "successes": 3,
+            "task_id": null,
+            "title": "qz-sk-archived-title",
+            "ui": {
+              "can_approve": false,
+              "can_restore": true,
+              "footprint": "도구: mail_search · 사이트: a.example.test",
+              "source_label": "회고",
+              "status_label": "보관",
+              "tone": "muted",
+              "usable": false
+            },
+            "updated_at": "2026-11-15T00:00:00Z",
+            "uses": 5
+          }
+        ],
+        "view": "list"
+      },
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "skills",
+      "path": "/skills",
+      "title": "스킬"
+    },
+    "name": "/skills",
+    "status": 200,
+    "url": "/skills"
+  },
+  {
+    "data": {
+      "extra": {
+        "content": "# qz-char-title\n\n- qz-char-line\n",
+        "content_bytes": 32,
+        "error": null,
+        "fingerprint": "df0e252d6af11c8831ac2eb2",
+        "history": [
+          {
+            "at": "2026-11-16T10:30:00Z",
+            "content": "# qz-char-title\n\n- qz-char-line\n",
+            "id": 2,
+            "note": "qz-char-hist-note-2",
+            "ui": {
+              "bytes": 32
+            }
+          },
+          {
+            "at": "2026-11-16T10:30:00Z",
+            "content": "",
+            "id": 1,
+            "note": "qz-char-hist-note-1",
+            "ui": {
+              "bytes": 0
+            }
+          }
+        ],
+        "max_bytes": 16384,
+        "model": {
+          "change_note": "바꾸면 다음 실행부터 적용됩니다. 대화는 이어지고, 바꾼 뒤 첫 실행은 새 모델이 지금까지의 대화를 처음부터 다시 읽어 평소보다 느리고 사용량이 더 듭니다.",
+          "choices": [
+            {
+              "about": "가장 유능합니다. 어려운 판단과 긴 작업에 맞고, 사용량을 가장 많이 씁니다.",
+              "key": "fable",
+              "label": "Fable"
+            },
+            {
+              "about": "복잡한 일에 맞습니다. Sonnet보다 사용량을 더 씁니다.",
+              "key": "opus",
+              "label": "Opus"
+            },
+            {
+              "about": "빠르고 가볍습니다. 일상 대화와 보통 작업에 맞습니다.",
+              "key": "sonnet",
+              "label": "Sonnet"
+            },
+            {
+              "about": "가장 빠르고 가볍습니다. 복잡한 일에는 덜 맞습니다.",
+              "key": "haiku",
+              "label": "Haiku"
+            }
+          ],
+          "config_default": "sonnet",
+          "label": "Opus",
+          "picked": "opus"
+        },
+        "pace": "slow",
+        "paces": [
+          {
+            "key": "off",
+            "label": "띄우지 않음(바로 이어 보냄)"
+          },
+          {
+            "key": "fast",
+            "label": "빠르게"
+          },
+          {
+            "key": "normal",
+            "label": "보통"
+          },
+          {
+            "key": "slow",
+            "label": "느긋하게"
+          }
+        ],
+        "path": "qz-char-path",
+        "view": "edit"
+      },
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "character",
+      "path": "/character",
+      "title": "캐릭터"
+    },
+    "name": "/character",
+    "status": 200,
+    "url": "/character"
+  },
+  {
+    "data": {
+      "extra": null,
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "expressions",
+      "path": "/expressions",
+      "title": "이모지·스티커"
+    },
+    "name": "/expressions",
+    "status": 200,
+    "url": "/expressions"
+  },
+  {
+    "data": {
+      "extra": null,
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "connections",
+      "path": "/connections",
+      "title": "연결"
+    },
+    "name": "/connections",
+    "status": 200,
+    "url": "/connections"
+  },
+  {
+    "data": {
+      "extra": {
+        "view": "sites"
+      },
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "browser",
+      "path": "/browser",
+      "title": "브라우저"
+    },
+    "name": "/browser",
+    "status": 200,
+    "url": "/browser"
+  },
+  {
+    "data": {
+      "extra": null,
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "safety",
+      "path": "/settings",
+      "title": "설정 · 안전"
+    },
+    "name": "/settings",
+    "status": 200,
+    "url": "/settings"
+  },
+  {
+    "data": {
+      "extra": null,
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "notify",
+      "path": "/settings/notify",
+      "title": "설정 · 알림"
+    },
+    "name": "/settings/notify",
+    "status": 200,
+    "url": "/settings/notify"
+  },
+  {
+    "data": {
+      "extra": null,
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "tasks",
+      "path": "/settings/work",
+      "title": "설정 · 작업"
+    },
+    "name": "/settings/work",
+    "status": 200,
+    "url": "/settings/work"
+  },
+  {
+    "data": {
+      "extra": null,
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "system",
+      "path": "/system",
+      "title": "시스템"
+    },
+    "name": "/system",
+    "status": 200,
+    "url": "/system"
+  },
+  {
+    "data": {
+      "extra": null,
+      "flash": {
+        "text": "qz-flash-text",
+        "tone": "ok"
+      },
+      "page": "start",
+      "path": "/start",
+      "title": "초기 설정"
+    },
+    "name": "/start",
+    "status": 200,
+    "url": "/start"
+  },
+  {
+    "data": {
+      "extra": {
+        "filter": "all"
+      },
+      "flash": null,
+      "page": "activity",
+      "path": "/activity",
+      "title": "활동"
+    },
+    "name": "activity?all",
+    "status": 200,
+    "url": "/activity?kind=all"
+  },
+  {
+    "data": {
+      "extra": {
+        "filter": "mail"
+      },
+      "flash": null,
+      "page": "activity",
+      "path": "/activity",
+      "title": "활동"
+    },
+    "name": "activity?mail",
+    "status": 200,
+    "url": "/activity?kind=mail"
+  },
+  {
+    "data": {
+      "extra": {
+        "filter": "calendar"
+      },
+      "flash": null,
+      "page": "activity",
+      "path": "/activity",
+      "title": "활동"
+    },
+    "name": "activity?calendar",
+    "status": 200,
+    "url": "/activity?kind=calendar"
+  },
+  {
+    "data": {
+      "extra": {
+        "filter": "web"
+      },
+      "flash": null,
+      "page": "activity",
+      "path": "/activity",
+      "title": "활동"
+    },
+    "name": "activity?web",
+    "status": 200,
+    "url": "/activity?kind=web"
+  },
+  {
+    "data": {
+      "extra": {
+        "filter": "approval"
+      },
+      "flash": null,
+      "page": "activity",
+      "path": "/activity",
+      "title": "활동"
+    },
+    "name": "activity?approval",
+    "status": 200,
+    "url": "/activity?kind=approval"
+  },
+  {
+    "data": {
+      "extra": {
+        "filter": "files"
+      },
+      "flash": null,
+      "page": "activity",
+      "path": "/activity",
+      "title": "활동"
+    },
+    "name": "activity?files",
+    "status": 200,
+    "url": "/activity?kind=files"
+  },
+  {
+    "data": {
+      "extra": {
+        "filter": "memory"
+      },
+      "flash": null,
+      "page": "activity",
+      "path": "/activity",
+      "title": "활동"
+    },
+    "name": "activity?memory",
+    "status": 200,
+    "url": "/activity?kind=memory"
+  },
+  {
+    "data": {
+      "extra": {
+        "query": "qz",
+        "view": "list"
+      },
+      "flash": null,
+      "page": "memory",
+      "path": "/memory",
+      "title": "기억"
+    },
+    "name": "memory?q",
+    "status": 200,
+    "url": "/memory?q=qz"
+  },
+  {
+    "data": {
+      "extra": {
+        "entry": {
+          "body": "- 말투: 존댓말\n- 메일 규칙은 [[mail-rules]] 참고",
+          "created_at": "2026-11-16T00:00:00Z",
+          "revision": 7,
+          "section": "Me",
+          "slug": "preferences",
+          "summary": "존댓말, 간결하게. 새 메일은 me@example.com로",
+          "title": "선호",
+          "ui": {
+            "section_key": "me",
+            "section_label": "나"
+          },
+          "updated_at": "2026-11-16T10:10:00Z"
+        },
+        "history": [
+          {
+            "action": "Write",
+            "at": "2026-11-16T10:30:00Z",
+            "author": "Agent",
+            "body": "qz-memrev-1-body",
+            "id": 1,
+            "reason": "qz-memrev-1-reason",
+            "run_id": "chat-1",
+            "section": "Me",
+            "slug": "qz-mem-me",
+            "summary": "qz-memrev-1-summary",
+            "title": "qz-memrev-1-title",
+            "ui": {
+              "author_label": "Lucia",
+              "deleted": false,
+              "origin": "대화 중"
+            }
+          },
+          {
+            "action": "Write",
+            "at": "2026-11-16T10:30:00Z",
+            "author": "User",
+            "body": "qz-memrev-2-body",
+            "id": 2,
+            "reason": "qz-memrev-2-reason",
+            "run_id": null,
+            "section": "Me",
+            "slug": "qz-mem-me",
+            "summary": "qz-memrev-2-summary",
+            "title": "qz-memrev-2-title",
+            "ui": {
+              "author_label": "사용자",
+              "deleted": false,
+              "origin": "관리 페이지·데몬"
+            }
+          },
+          {
+            "action": "Delete",
+            "at": "2026-11-16T10:30:00Z",
+            "author": "Daemon",
+            "body": "qz-memrev-3-body",
+            "id": 3,
+            "reason": "qz-memrev-3-reason",
+            "run_id": "routine-1",
+            "section": "Me",
+            "slug": "qz-mem-me",
+            "summary": "qz-memrev-3-summary",
+            "title": "qz-memrev-3-title",
+            "ui": {
+              "author_label": "데몬",
+              "deleted": true,
+              "origin": "반복 루틴(사람 없음)"
+            }
+          }
+        ],
+        "view": "entry"
+      },
+      "flash": null,
+      "page": "memory",
+      "path": "/memory",
+      "title": "기억"
+    },
+    "name": "memory/entry",
+    "status": 200,
+    "url": "/memory/preferences"
+  },
+  {
+    "data": {
+      "extra": {
+        "view": "missing"
+      },
+      "flash": null,
+      "page": "memory",
+      "path": "/memory",
+      "title": "기억"
+    },
+    "name": "memory/missing",
+    "status": 404,
+    "url": "/memory/no-such-entry"
+  },
+  {
+    "data": {
+      "extra": {
+        "revisions": [
+          {
+            "at": "2026-11-16T10:30:00Z",
+            "author": "user",
+            "body": "qz-skill-rev2-body",
+            "reason": "qz-skill-rev2-reason",
+            "revision": 2,
+            "script": "qz-skill-rev2-script",
+            "ui": {
+              "author_label": "사용자"
+            }
+          },
+          {
+            "at": "2026-11-16T10:30:00Z",
+            "author": "agent",
+            "body": "qz-skill-rev1-body",
+            "reason": "qz-skill-rev1-reason",
+            "revision": 1,
+            "script": null,
+            "ui": {
+              "author_label": "Lucia"
+            }
+          }
+        ],
+        "skill": {
+          "created_at": "2026-11-10T00:00:00Z",
+          "description": "qz-sk-pending-desc",
+          "footprint": {
+            "hosts": [
+              "a.example.test"
+            ],
+            "tools": [
+              "mail_search"
+            ]
+          },
+          "last_used_at": null,
+          "pinned": false,
+          "revision": 2,
+          "script_tools": [
+            "qz-sk-pending-tool"
+          ],
+          "slug": "qz-sk-pending",
+          "source": "retro",
+          "status": "Pending",
+          "successes": 3,
+          "task_id": null,
+          "title": "qz-sk-pending-title",
+          "ui": {
+            "can_approve": true,
+            "can_restore": false,
+            "footprint": "도구: mail_search · 사이트: a.example.test",
+            "source_label": "회고",
+            "status_label": "승인 대기",
+            "tone": "warn",
+            "usable": false
+          },
+          "updated_at": "2026-11-15T00:00:00Z",
+          "uses": 5
+        },
+        "view": "detail"
+      },
+      "flash": null,
+      "page": "skills",
+      "path": "/skills",
+      "title": "스킬"
+    },
+    "name": "skills/detail",
+    "status": 200,
+    "url": "/skills/qz-sk-pending"
+  },
+  {
+    "data": {
+      "extra": {
+        "is_current": true,
+        "revision": {
+          "at": "2026-11-16T10:30:00Z",
+          "content": "qz-char-rev-content",
+          "id": 4,
+          "note": "qz-char-rev-note"
+        },
+        "view": "revision"
+      },
+      "flash": null,
+      "page": "character",
+      "path": "/character",
+      "title": "캐릭터"
+    },
+    "name": "character/rev-current",
+    "status": 200,
+    "url": "/character/rev/4"
+  },
+  {
+    "data": {
+      "extra": {
+        "is_current": false,
+        "revision": {
+          "at": "2026-11-16T10:30:00Z",
+          "content": "qz-char-rev-content",
+          "id": 4,
+          "note": "qz-char-rev-note"
+        },
+        "view": "revision"
+      },
+      "flash": null,
+      "page": "character",
+      "path": "/character",
+      "title": "캐릭터"
+    },
+    "name": "character/rev-old",
+    "status": 200,
+    "url": "/character/rev/3"
+  },
+  {
+    "data": {
+      "extra": {
+        "view": "revision_missing"
+      },
+      "flash": null,
+      "page": "character",
+      "path": "/character",
+      "title": "캐릭터"
+    },
+    "name": "character/rev-missing",
+    "status": 404,
+    "url": "/character/rev/999"
+  },
+  {
+    "data": {
+      "extra": {
+        "content": null,
+        "content_bytes": null,
+        "error": "qz-char-load-error",
+        "fingerprint": null,
+        "history": [],
+        "max_bytes": 16384,
+        "model": {
+          "change_note": "바꾸면 다음 실행부터 적용됩니다. 대화는 이어지고, 바꾼 뒤 첫 실행은 새 모델이 지금까지의 대화를 처음부터 다시 읽어 평소보다 느리고 사용량이 더 듭니다.",
+          "choices": [
+            {
+              "about": "가장 유능합니다. 어려운 판단과 긴 작업에 맞고, 사용량을 가장 많이 씁니다.",
+              "key": "fable",
+              "label": "Fable"
+            },
+            {
+              "about": "복잡한 일에 맞습니다. Sonnet보다 사용량을 더 씁니다.",
+              "key": "opus",
+              "label": "Opus"
+            },
+            {
+              "about": "빠르고 가볍습니다. 일상 대화와 보통 작업에 맞습니다.",
+              "key": "sonnet",
+              "label": "Sonnet"
+            },
+            {
+              "about": "가장 빠르고 가볍습니다. 복잡한 일에는 덜 맞습니다.",
+              "key": "haiku",
+              "label": "Haiku"
+            }
+          ],
+          "config_default": "sonnet",
+          "label": "기본(sonnet)",
+          "picked": null
+        },
+        "pace": "normal",
+        "paces": [
+          {
+            "key": "off",
+            "label": "띄우지 않음(바로 이어 보냄)"
+          },
+          {
+            "key": "fast",
+            "label": "빠르게"
+          },
+          {
+            "key": "normal",
+            "label": "보통"
+          },
+          {
+            "key": "slow",
+            "label": "느긋하게"
+          }
+        ],
+        "path": null,
+        "view": "edit"
+      },
+      "flash": null,
+      "page": "character",
+      "path": "/character",
+      "title": "캐릭터"
+    },
+    "name": "character/load-error",
+    "status": 200,
+    "url": "/character?fixture=load-error"
+  },
+  {
+    "data": {
+      "extra": {
+        "auto": false,
+        "available": false,
+        "left_secs": null,
+        "refresh": null,
+        "tab": null,
+        "tabs": [],
+        "view": "handover"
+      },
+      "flash": null,
+      "page": "browser",
+      "path": "/browser",
+      "title": "브라우저"
+    },
+    "name": "handover/off",
+    "status": 200,
+    "url": "/browser/handover?fixture=off"
+  },
+  {
+    "data": {
+      "extra": {
+        "auto": false,
+        "available": true,
+        "left_secs": null,
+        "refresh": null,
+        "tab": null,
+        "tabs": [],
+        "view": "handover"
+      },
+      "flash": null,
+      "page": "browser",
+      "path": "/browser",
+      "title": "브라우저"
+    },
+    "name": "handover/idle",
+    "status": 200,
+    "url": "/browser/handover"
+  },
+  {
+    "data": {
+      "extra": {
+        "auto": false,
+        "available": true,
+        "left_secs": 605,
+        "refresh": null,
+        "tab": "qz-tab-one",
+        "tabs": [
+          {
+            "id": "qz-tab-one",
+            "title": "qz-tab-one-title",
+            "url": "https://qz-tab-one.example.test/"
+          },
+          {
+            "id": "qz-tab-two",
+            "title": "",
+            "url": "https://qz-tab-two.example.test/"
+          }
+        ],
+        "view": "handover"
+      },
+      "flash": null,
+      "page": "browser",
+      "path": "/browser",
+      "title": "브라우저"
+    },
+    "name": "handover/active",
+    "status": 200,
+    "url": "/browser/handover?tab=qz-tab-one"
+  },
+  {
+    "data": {
+      "extra": {
+        "auto": true,
+        "available": true,
+        "left_secs": 60,
+        "refresh": 3,
+        "tab": "qz-tab-one",
+        "tabs": [
+          {
+            "id": "qz-tab-one",
+            "title": "qz-tab-one-title",
+            "url": "https://qz-tab-one.example.test/"
+          },
+          {
+            "id": "qz-tab-two",
+            "title": "",
+            "url": "https://qz-tab-two.example.test/"
+          }
+        ],
+        "view": "handover"
+      },
+      "flash": null,
+      "page": "browser",
+      "path": "/browser",
+      "title": "브라우저"
+    },
+    "name": "handover/auto",
+    "status": 200,
+    "url": "/browser/handover?tab=qz-tab-one&auto=1"
+  }
+]

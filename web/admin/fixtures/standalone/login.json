@@ -1,0 +1,9 @@
+{
+  "kind": "standalone",
+  "name": "Lucia",
+  "screen": {
+    "error": "qz-login-error",
+    "external": false,
+    "type": "login"
+  }
+}

@@ -1,0 +1,98 @@
+/* 입력 칸의 공통 모습. 라벨은 위, 도움말은 아래. 칸은 자리에 맞춰 줄어든다(max-width만 준다). */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+}
+.field.grow {
+  flex: 1 1 14rem;
+  width: auto;
+}
+/* 좁히는 것은 입력 칸뿐이다(라벨과 도움말은 줄이지 않는다: 긴 라벨이 좁은 칸에 맞춰 여러 줄로 꺾이지 않게). */
+.field.w-xs .control { max-width: 8rem; }
+.field.w-sm .control { max-width: 14rem; }
+.field.w-md .control { max-width: 26rem; }
+.field > label,
+.field > .label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+.field .help {
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+.field .row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--s2);
+}
+.field .control {
+  flex: 1 1 9rem;
+  width: 100%;
+  min-height: var(--control-h);
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  line-height: 1.5;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.field .control:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.field textarea.control {
+  resize: vertical;
+  min-height: 5rem;
+}
+.field textarea.control.mono {
+  font-family: var(--mono);
+  font-size: 0.875rem;
+}
+.field select.control {
+  padding-inline-end: 2rem;
+}
+.field .control::placeholder {
+  color: var(--text-3);
+}
+.field .control:disabled {
+  background: var(--surface-2);
+  color: var(--text-3);
+}
+.field input[type='file'].control {
+  padding: 0.35rem;
+}
+/* 파일 고르기 단추: 작은 알약(Button과 같은 결). 입력 칸 안에서 글과 간격을 둔다. */
+.field input[type='file'].control::file-selector-button {
+  margin-inline-end: 0.7rem;
+  padding: 0.2rem 0.8rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.field input[type='file'].control:hover:not(:disabled)::file-selector-button {
+  background: var(--surface-3);
+  border-color: var(--accent);
+}
+/* 초점: 전역 고리(base.css :focus-visible)는 그대로 두고, 칸의 테두리만 쪽빛으로 바꾼다. */
+.field .control:focus-visible {
+  border-color: var(--accent);
+}
+@media (pointer: coarse) {
+  .field .control {
+    min-height: 2.75rem;
+  }
+}

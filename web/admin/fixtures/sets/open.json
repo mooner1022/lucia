@@ -1,0 +1,2227 @@
+{
+  "consts": {
+    "activity_filters": [
+      {
+        "key": "all",
+        "label": "전체"
+      },
+      {
+        "key": "mail",
+        "label": "메일"
+      },
+      {
+        "key": "calendar",
+        "label": "일정"
+      },
+      {
+        "key": "web",
+        "label": "웹"
+      },
+      {
+        "key": "approval",
+        "label": "발송·승인"
+      },
+      {
+        "key": "files",
+        "label": "파일"
+      },
+      {
+        "key": "memory",
+        "label": "기억"
+      }
+    ],
+    "browser": {
+      "handover_keys": [
+        {
+          "key": "enter",
+          "label": "Enter"
+        },
+        {
+          "key": "tab",
+          "label": "Tab"
+        },
+        {
+          "key": "backspace",
+          "label": "⌫"
+        },
+        {
+          "key": "escape",
+          "label": "Esc"
+        },
+        {
+          "key": "up",
+          "label": "↑"
+        },
+        {
+          "key": "down",
+          "label": "↓"
+        }
+      ],
+      "handover_max_secs": 900
+    },
+    "dev": {
+      "default_cost_cap_usd": 3.0
+    },
+    "expressions": {
+      "keep_days": 30,
+      "kinds": [
+        {
+          "key": "emoji",
+          "label": "이모지",
+          "max_bytes": 262144,
+          "max_count": 200
+        },
+        {
+          "key": "sticker",
+          "label": "스티커",
+          "max_bytes": 524288,
+          "max_count": 100
+        }
+      ],
+      "max_categories": 20
+    },
+    "gateway": {
+      "app_role": "app",
+      "roles": [
+        {
+          "key": "app",
+          "label": "앱"
+        },
+        {
+          "key": "device",
+          "label": "기기"
+        }
+      ],
+      "scope_app_tools": "app_tools",
+      "scope_browser_handover": "browser_handover",
+      "scope_security_mode": "security_mode",
+      "scopes": [
+        {
+          "key": "security_mode",
+          "label": "권한 모드 바꾸기(/권한)"
+        },
+        {
+          "key": "app_tools",
+          "label": "Lucia가 앱 기능 부르기"
+        },
+        {
+          "key": "browser_handover",
+          "label": "브라우저 화면 넘겨받기"
+        }
+      ]
+    },
+    "images": {
+      "default_daily_usd": 1.0
+    },
+    "memory": {
+      "sections": [
+        {
+          "key": "me",
+          "label": "나"
+        },
+        {
+          "key": "topic",
+          "label": "주제"
+        },
+        {
+          "key": "area",
+          "label": "영역"
+        }
+      ]
+    },
+    "pages": [
+      {
+        "key": "overview",
+        "label": "홈",
+        "nav_label": "홈",
+        "path": "/",
+        "tab_label": "홈"
+      },
+      {
+        "key": "work",
+        "label": "할 일",
+        "nav_label": "할 일",
+        "path": "/work",
+        "tab_label": "할 일"
+      },
+      {
+        "key": "automation",
+        "label": "자동화",
+        "nav_label": "자동화",
+        "path": "/automation",
+        "tab_label": "자동화"
+      },
+      {
+        "key": "activity",
+        "label": "활동",
+        "nav_label": "활동",
+        "path": "/activity",
+        "tab_label": "활동"
+      },
+      {
+        "key": "memory",
+        "label": "기억",
+        "nav_label": "기억",
+        "path": "/memory",
+        "tab_label": "기억"
+      },
+      {
+        "key": "skills",
+        "label": "스킬",
+        "nav_label": "스킬",
+        "path": "/skills",
+        "tab_label": "스킬"
+      },
+      {
+        "key": "character",
+        "label": "캐릭터",
+        "nav_label": "캐릭터",
+        "path": "/character",
+        "tab_label": "캐릭터"
+      },
+      {
+        "key": "expressions",
+        "label": "이모지·스티커",
+        "nav_label": "이모지·스티커",
+        "path": "/expressions",
+        "tab_label": "이모지·스티커"
+      },
+      {
+        "key": "connections",
+        "label": "연결",
+        "nav_label": "연결",
+        "path": "/connections",
+        "tab_label": "연결"
+      },
+      {
+        "key": "browser",
+        "label": "브라우저",
+        "nav_label": "브라우저",
+        "path": "/browser",
+        "tab_label": "브라우저"
+      },
+      {
+        "key": "safety",
+        "label": "설정 · 안전",
+        "nav_label": "설정",
+        "path": "/settings",
+        "tab_label": "안전과 한도"
+      },
+      {
+        "key": "notify",
+        "label": "설정 · 알림",
+        "nav_label": "설정",
+        "path": "/settings/notify",
+        "tab_label": "알림"
+      },
+      {
+        "key": "tasks",
+        "label": "설정 · 작업",
+        "nav_label": "설정",
+        "path": "/settings/work",
+        "tab_label": "작업과 보관"
+      },
+      {
+        "key": "system",
+        "label": "시스템",
+        "nav_label": "시스템",
+        "path": "/system",
+        "tab_label": "시스템"
+      },
+      {
+        "key": "start",
+        "label": "초기 설정",
+        "nav_label": "초기 설정",
+        "path": "/start",
+        "tab_label": "초기 설정"
+      }
+    ],
+    "profile": {
+      "avatar_rules": "움직이지 않는 PNG·JPEG, 정사각형, 한 변 128~2048px, 3.0 MB까지",
+      "default_name": "Lucia",
+      "name_max_chars": 24
+    },
+    "routines": {
+      "daily_wakes_max": 24,
+      "daily_wakes_range": [
+        1,
+        200
+      ]
+    },
+    "security": {
+      "modes": [
+        {
+          "icon": "lock",
+          "items": [
+            "브라우저: 링크 이동·펼치기·스크롤 말고는 누르기·글 넣기·Enter를 모두 승인 카드로 묻는다",
+            "사이트 위임의 \"로그인\"·\"동작\"을 쓰지 않는다(묻지 않고 다시 로그인하거나 폼을 내지 않는다. 로그인 게시판 감시의 자동 재로그인도 멈춘다). 읽기 위임은 그대로",
+            "캘린더: 참석자가 없는 내 일정도 만들거나 고칠 때 카드로 묻는다",
+            "나가는 글 검사: 대화 중에도 \"막기\"로 본다(사용자 자료가 실린 글·주소는 묻는다)",
+            "반복 루틴: 새로 만들거나 고치면 모두 승인 카드를 거친다",
+            "사람 없는 실행의 기억 쓰기: 갈래와 상관없이 보류 카드로 묻는다(하루 정리는 그대로)"
+          ],
+          "keeps": [],
+          "key": "strict",
+          "label": "엄격",
+          "summary": "더 묻는다: 브라우저 입력, 위임된 로그인·동작, 캘린더, 루틴, 사람 없는 기억 쓰기, 나가는 글"
+        },
+        {
+          "icon": "shield",
+          "items": [],
+          "keeps": [],
+          "key": "standard",
+          "label": "기본",
+          "summary": "지금까지의 규칙: 외부 쓰기·위험한 브라우저 동작은 카드로 묻는다"
+        },
+        {
+          "icon": "unlock",
+          "items": [
+            "내 캘린더 쓰기·지우기: 카드 없이 바로 하고 DM에 닫힌 카드로 남긴다",
+            "브라우저: 무엇을 하는지 확인하지 못한 단추·자리 누르기 같은 가벼운 확인을 묻지 않는다. 나가는 글 검사의 \"막기\"로 생긴 승인도 건너뛴다",
+            "저장된 로그인으로 다시 로그인할 때 묻지 않는다"
+          ],
+          "keeps": [
+            "사람이 대화 중이 아닌 실행(아침 브리핑, 후속 조치, 반복 루틴, 메일 알림, 작업 세션, 코드 실행)은 기본 규칙",
+            "되돌릴 수 없이 바깥에 남는 일은 해제에서도 승인 카드를 거친다(결정 0059): 메일 발송, Discord 글·서버 관리, 브라우저의 글 등록·폼 제출·파일 올리기, 결제·주문·송금·탈퇴·비밀번호 바꾸기, 쉘의 git push·릴리스·배포·게시",
+            "사이트 위임·루틴·감시·스킬 승인처럼 모드가 끝나도 남는 권한은 카드로 묻는다",
+            "인젝션 검사에 걸린 쓰기 보류, 비밀번호를 모델에 주지 않기, VM 격리와 네트워크 제한"
+          ],
+          "key": "open",
+          "label": "해제",
+          "summary": "대화 중에는 가벼운 확인을 건너뛴다(되돌릴 수 없이 바깥에 남는 일과 사람 없는 실행은 그대로 묻는다)"
+        }
+      ]
+    },
+    "settings_tabs": [
+      "safety",
+      "notify",
+      "tasks"
+    ],
+    "signals": {
+      "daily_range": [
+        0,
+        500
+      ],
+      "poll_minutes_range": [
+        1,
+        60
+      ]
+    },
+    "watch": {
+      "browser_fetcher": "browser",
+      "fetchers": [
+        {
+          "key": "plain",
+          "label": "로그인 없이 HTTP"
+        },
+        {
+          "key": "session",
+          "label": "로그인 세션으로 HTTP"
+        },
+        {
+          "key": "browser",
+          "label": "브라우저로 읽기"
+        }
+      ],
+      "host_gap_minutes": 3,
+      "interval_max": 1440,
+      "interval_min": {
+        "items": 3,
+        "region": 10
+      },
+      "notify": [
+        {
+          "key": "now",
+          "label": "바로 알림"
+        },
+        {
+          "key": "classify",
+          "label": "작은 모델이 골라 알림"
+        },
+        {
+          "key": "digest",
+          "label": "묶음 소식만"
+        }
+      ],
+      "now_daily_range": [
+        0,
+        200
+      ]
+    },
+    "wrapup": {
+      "keep_days_range": [
+        7,
+        3650
+      ]
+    }
+  },
+  "csrf": "csrf-fixture-0123456789",
+  "kind": "page",
+  "name": "qz-profile-name",
+  "notices": [
+    {
+      "page": "/system",
+      "text": "점검 실패: qz-check-b",
+      "tone": "bad"
+    },
+    {
+      "page": "/activity",
+      "text": "지난 24시간 동안 Discord로 보내지 못한 알림 1건",
+      "tone": "warn"
+    },
+    {
+      "page": "/activity",
+      "text": "메일 발송 승인 대기 1건이 있습니다. Discord 카드에서 답해 주세요.",
+      "tone": "info"
+    }
+  ],
+  "overall": {
+    "label": "확인 필요",
+    "tone": "bad"
+  },
+  "pending": 1,
+  "snapshot": {
+    "access": {
+      "admin_url": "qz-admin-url",
+      "external_blocked": true,
+      "gateway_url": "qz-gateway-url",
+      "session_external": false,
+      "totp_enabled": true,
+      "totp_pending": null
+    },
+    "activity": [
+      {
+        "at": "2026-11-16T10:10:00Z",
+        "id": 1,
+        "kind": "mail_search",
+        "run_id": null,
+        "summary": "qz-activity-mail_search",
+        "ui": {
+          "detail": "qz-activity-mail_search",
+          "groups": [
+            "all",
+            "mail"
+          ],
+          "icon": "search",
+          "label": "메일 검색",
+          "tone": "muted"
+        }
+      },
+      {
+        "at": "2026-11-16T10:11:00Z",
+        "id": 2,
+        "kind": "mail_read",
+        "run_id": null,
+        "summary": "qz-activity-mail_read",
+        "ui": {
+          "detail": "qz-activity-mail_read",
+          "groups": [
+            "all",
+            "mail"
+          ],
+          "icon": "mail",
+          "label": "메일 읽기",
+          "tone": "muted"
+        }
+      },
+      {
+        "at": "2026-11-16T10:12:00Z",
+        "id": 3,
+        "kind": "calendar_read",
+        "run_id": null,
+        "summary": "qz-activity-calendar_read",
+        "ui": {
+          "detail": "qz-activity-calendar_read",
+          "groups": [
+            "all",
+            "calendar"
+          ],
+          "icon": "calendar",
+          "label": "일정 조회",
+          "tone": "muted"
+        }
+      },
+      {
+        "at": "2026-11-16T10:13:00Z",
+        "id": 4,
+        "kind": "mail_sent",
+        "run_id": null,
+        "summary": "qz-activity-mail_sent",
+        "ui": {
+          "detail": "qz-activity-mail_sent",
+          "groups": [
+            "all",
+            "approval"
+          ],
+          "icon": "send",
+          "label": "메일 보냄",
+          "tone": "ok"
+        }
+      },
+      {
+        "at": "2026-11-16T10:14:00Z",
+        "id": 5,
+        "kind": "memory_write",
+        "run_id": null,
+        "summary": "qz-activity-memory_write",
+        "ui": {
+          "detail": "qz-activity-memory_write",
+          "groups": [
+            "all",
+            "memory"
+          ],
+          "icon": "memory",
+          "label": "기억 변경",
+          "tone": "warn"
+        }
+      },
+      {
+        "at": "2026-11-16T10:15:00Z",
+        "id": 6,
+        "kind": "web_search",
+        "run_id": null,
+        "summary": "qz-activity-web_search",
+        "ui": {
+          "detail": "qz-activity-web_search",
+          "groups": [
+            "all",
+            "web"
+          ],
+          "icon": "search",
+          "label": "웹 검색",
+          "tone": "muted"
+        }
+      },
+      {
+        "at": "2026-11-16T10:16:00Z",
+        "id": 7,
+        "kind": "file_create",
+        "run_id": null,
+        "summary": "qz-activity-file_create",
+        "ui": {
+          "detail": "qz-activity-file_create",
+          "groups": [
+            "all",
+            "files"
+          ],
+          "icon": "upload",
+          "label": "파일 만들기",
+          "tone": "muted"
+        }
+      },
+      {
+        "at": "2026-11-16T10:17:00Z",
+        "id": 8,
+        "kind": "approval_requested",
+        "run_id": null,
+        "summary": "qz-activity-approval_requested",
+        "ui": {
+          "detail": "qz-activity-approval_requested",
+          "groups": [
+            "all",
+            "approval"
+          ],
+          "icon": "send",
+          "label": "발송 요청",
+          "tone": "info"
+        }
+      }
+    ],
+    "alerts": [
+      {
+        "at": "2026-11-16T09:30:00Z",
+        "delivered": true,
+        "id": 1,
+        "text": "qz-alert-delivered"
+      },
+      {
+        "at": "2026-11-16T08:30:00Z",
+        "delivered": false,
+        "id": 2,
+        "text": "qz-alert-undelivered"
+      }
+    ],
+    "app": {
+      "fcm_project": "qz-fcm-project",
+      "fcm_ready": true,
+      "notify_client": "qz-client-a",
+      "push_preview": true
+    },
+    "approval_ttl_hours": 24,
+    "approvals": [
+      {
+        "auto": false,
+        "card_ref": "1",
+        "conversation": "discord:1",
+        "decided_at": null,
+        "expires_at": "2026-11-17T10:07:00Z",
+        "id": "p1",
+        "kind": "mail_send",
+        "payload": {},
+        "requested_at": "2026-11-16T10:07:00Z",
+        "result": "qz-approval-pending-result",
+        "run_id": "chat-1",
+        "status": "Pending",
+        "summary": "qz-approval-pending",
+        "ui": {
+          "pending": true,
+          "status": "승인 대기",
+          "tone": "info"
+        }
+      },
+      {
+        "auto": false,
+        "card_ref": "1",
+        "conversation": "discord:1",
+        "decided_at": null,
+        "expires_at": "2026-11-17T10:07:00Z",
+        "id": "a2",
+        "kind": "mail_send",
+        "payload": {},
+        "requested_at": "2026-11-16T10:07:00Z",
+        "result": "qz-approval-sent-result",
+        "run_id": "chat-1",
+        "status": "Sent",
+        "summary": "qz-approval-sent",
+        "ui": {
+          "pending": false,
+          "status": "보냄",
+          "tone": "ok"
+        }
+      },
+      {
+        "auto": false,
+        "card_ref": "1",
+        "conversation": "discord:1",
+        "decided_at": null,
+        "expires_at": "2026-11-17T10:07:00Z",
+        "id": "a3",
+        "kind": "mail_send",
+        "payload": {},
+        "requested_at": "2026-11-16T10:07:00Z",
+        "result": null,
+        "run_id": "chat-1",
+        "status": "Denied",
+        "summary": "qz-approval-denied",
+        "ui": {
+          "pending": false,
+          "status": "거절",
+          "tone": "muted"
+        }
+      },
+      {
+        "auto": false,
+        "card_ref": "1",
+        "conversation": "discord:1",
+        "decided_at": null,
+        "expires_at": "2026-11-17T10:07:00Z",
+        "id": "a4",
+        "kind": "mail_send",
+        "payload": {},
+        "requested_at": "2026-11-16T10:07:00Z",
+        "result": null,
+        "run_id": "chat-1",
+        "status": "Expired",
+        "summary": "qz-approval-expired",
+        "ui": {
+          "pending": false,
+          "status": "만료",
+          "tone": "muted"
+        }
+      },
+      {
+        "auto": false,
+        "card_ref": "1",
+        "conversation": "discord:1",
+        "decided_at": null,
+        "expires_at": "2026-11-17T10:07:00Z",
+        "id": "a5",
+        "kind": "mail_send",
+        "payload": {},
+        "requested_at": "2026-11-16T10:07:00Z",
+        "result": "qz-approval-failed-result",
+        "run_id": "chat-1",
+        "status": "Failed",
+        "summary": "qz-approval-failed",
+        "ui": {
+          "pending": false,
+          "status": "실패",
+          "tone": "bad"
+        }
+      }
+    ],
+    "backup": {
+      "cron": "0 4 * * *",
+      "enabled": true,
+      "keep_days": 14,
+      "last": "qz-backup-last",
+      "ui": {
+        "cron_text": "매일 04:00"
+      }
+    },
+    "browser": {
+      "blocked": [
+        "qz-blocked-a",
+        "qz-blocked-b"
+      ],
+      "idle_minutes": 10,
+      "recent_blocks": [
+        {
+          "at": "2026-11-16T10:27:00Z",
+          "blocked": "qz-recent-block-why",
+          "host": "qz-recent-block-host",
+          "port": 443
+        }
+      ],
+      "running": true,
+      "sandbox": "qz-browser-sandbox",
+      "sites": [
+        {
+          "id": "quasarzone",
+          "name": "qz-site-a-name",
+          "origin": "https://qz-site-a.example.test",
+          "saved": true,
+          "username": "qz-site-a-user"
+        },
+        {
+          "id": "www.example.com",
+          "name": "qz-site-b-name",
+          "origin": "https://qz-site-b.example.test",
+          "saved": false,
+          "username": "qz-site-b-user"
+        }
+      ]
+    },
+    "checks": [
+      {
+        "detail": "qz-check-a-detail",
+        "name": "qz-check-a",
+        "ok": true
+      },
+      {
+        "detail": "qz-check-b-detail",
+        "name": "qz-check-b",
+        "ok": false
+      }
+    ],
+    "checks_at": "2026-11-16T10:25:00Z",
+    "clients": [
+      [
+        {
+          "acked_seq": 3,
+          "created_at": "2026-11-14T18:30:00Z",
+          "id": "qz-client-a",
+          "last_seen_at": "2026-11-16T09:30:00Z",
+          "name": "qz-client-a-name",
+          "push_at": "2026-11-16T08:30:00Z",
+          "push_platform": "android",
+          "revoked_at": null,
+          "role": "app",
+          "scopes": [
+            "security_mode"
+          ],
+          "ui": {
+            "has_app_tools": false,
+            "has_browser_handover": false,
+            "has_push_token": true,
+            "has_security_mode": true,
+            "is_app": true,
+            "role_label": "앱",
+            "scope_labels": [
+              "권한 모드 바꾸기(/권한)"
+            ]
+          }
+        },
+        true
+      ],
+      [
+        {
+          "acked_seq": 0,
+          "created_at": "2026-11-14T18:30:00Z",
+          "id": "qz-client-b",
+          "last_seen_at": null,
+          "name": "qz-client-b-name",
+          "push_at": null,
+          "push_platform": null,
+          "revoked_at": null,
+          "role": "device",
+          "scopes": [],
+          "ui": {
+            "has_app_tools": false,
+            "has_browser_handover": false,
+            "has_push_token": false,
+            "has_security_mode": false,
+            "is_app": false,
+            "role_label": "기기",
+            "scope_labels": []
+          }
+        },
+        false
+      ],
+      [
+        {
+          "acked_seq": 0,
+          "created_at": "2026-11-14T18:30:00Z",
+          "id": "qz-client-c",
+          "last_seen_at": "2026-11-15T14:30:00Z",
+          "name": "qz-client-c-name",
+          "push_at": null,
+          "push_platform": null,
+          "revoked_at": "2026-11-16T00:30:00Z",
+          "role": "app",
+          "scopes": [],
+          "ui": {
+            "has_app_tools": false,
+            "has_browser_handover": false,
+            "has_push_token": false,
+            "has_security_mode": false,
+            "is_app": true,
+            "role_label": "앱",
+            "scope_labels": []
+          }
+        },
+        false
+      ]
+    ],
+    "compact_at_tokens": 100000,
+    "daily_cap": 2.5,
+    "dev_allow_hosts": "qz-dev-hosts",
+    "dev_cost_cap": 3.5,
+    "dev_local_roots": "qz-dev-roots",
+    "discord": {
+      "content_refused": false,
+      "guild_calls": true,
+      "notify": "qz-discord-notify",
+      "owner": "qz-discord-owner",
+      "prefix": "qz-discord-prefix",
+      "servers": {
+        "Ok": [
+          {
+            "admin": true,
+            "id": "111",
+            "name": "qz-server-a",
+            "owner": false
+          },
+          {
+            "admin": false,
+            "id": "222",
+            "name": "qz-server-b",
+            "owner": false
+          }
+        ]
+      },
+      "state": {
+        "Connected": {
+          "bot": "qz-discord-bot"
+        }
+      },
+      "token_set": true,
+      "ui": {
+        "bot": "qz-discord-bot",
+        "state": "connected",
+        "status": "연결됨",
+        "stopped_reason": null,
+        "tone": "ok"
+      }
+    },
+    "egress_block": true,
+    "expressions": {
+      "categories": [
+        {
+          "icon": "e_0a1b2c3d4e5f",
+          "id": "qzcat",
+          "label": "qz-expr-category-label",
+          "sort": 3
+        }
+      ],
+      "emoji": [
+        {
+          "category": "qzcat",
+          "created_at": "2026-11-15T04:30:00Z",
+          "description": "qz-expr-emoji-description",
+          "file": {
+            "animated": false,
+            "created_at": "2026-11-15T04:30:00Z",
+            "height": 128,
+            "id": "x_e_0a1b2c3d4e5f",
+            "mime": "image/png",
+            "size": 2048,
+            "unlisted_at": null,
+            "width": 128
+          },
+          "id": "e_0a1b2c3d4e5f",
+          "kind": "emoji",
+          "label": "qz-expr-emoji-label",
+          "name": "qz-expr-emoji",
+          "origin": "admin",
+          "tags": [
+            "qz-expr-emoji-tag"
+          ],
+          "ui": {
+            "origin_label": "관리 페이지에서 등록",
+            "size_text": "2 KB"
+          },
+          "updated_at": "2026-11-15T04:30:00Z"
+        }
+      ],
+      "stickers": [
+        {
+          "category": "qzcat",
+          "created_at": "2026-11-15T04:30:00Z",
+          "description": "qz-expr-sticker-description",
+          "file": {
+            "animated": true,
+            "created_at": "2026-11-15T04:30:00Z",
+            "height": 128,
+            "id": "x_s_0a1b2c3d4e5f",
+            "mime": "image/png",
+            "size": 2048,
+            "unlisted_at": null,
+            "width": 128
+          },
+          "id": "s_0a1b2c3d4e5f",
+          "kind": "sticker",
+          "label": "",
+          "name": "qz-expr-sticker",
+          "origin": "agent",
+          "tags": [
+            "qz-expr-sticker-tag"
+          ],
+          "ui": {
+            "origin_label": "Lucia가 등록",
+            "size_text": "2 KB"
+          },
+          "updated_at": "2026-11-15T04:30:00Z"
+        }
+      ],
+      "version": "qzversion"
+    },
+    "followups_closed": [
+      {
+        "closed_at": "2026-11-16T08:30:00Z",
+        "conversation": null,
+        "created_at": "2026-11-16T07:30:00Z",
+        "detail": "qz-fu-done-task-detail",
+        "due_at": "2026-11-16T16:30:00Z",
+        "id": "qz-fu-done",
+        "origin": "chat",
+        "result": "qz-fu-done-result",
+        "run_id": null,
+        "status": "Done",
+        "task": "qz-fu-done-task",
+        "ui": {
+          "origin_label": "대화에서 등록(브라우저 사용)",
+          "status_label": "함",
+          "tone": "ok",
+          "uses_browser": true
+        }
+      },
+      {
+        "closed_at": "2026-11-16T08:30:00Z",
+        "conversation": null,
+        "created_at": "2026-11-16T07:30:00Z",
+        "detail": "qz-fu-failed-task-detail",
+        "due_at": "2026-11-16T16:30:00Z",
+        "id": "qz-fu-failed",
+        "origin": "chat",
+        "result": "qz-fu-failed-result",
+        "run_id": null,
+        "status": "Failed",
+        "task": "qz-fu-failed-task",
+        "ui": {
+          "origin_label": "대화에서 등록(브라우저 사용)",
+          "status_label": "실패",
+          "tone": "bad",
+          "uses_browser": true
+        }
+      },
+      {
+        "closed_at": "2026-11-16T08:30:00Z",
+        "conversation": null,
+        "created_at": "2026-11-16T07:30:00Z",
+        "detail": "qz-fu-cancelled-task-detail",
+        "due_at": "2026-11-16T16:30:00Z",
+        "id": "qz-fu-cancelled",
+        "origin": "chat",
+        "result": null,
+        "run_id": null,
+        "status": "Cancelled",
+        "task": "qz-fu-cancelled-task",
+        "ui": {
+          "origin_label": "대화에서 등록(브라우저 사용)",
+          "status_label": "취소",
+          "tone": "muted",
+          "uses_browser": true
+        }
+      }
+    ],
+    "followups_open": [
+      {
+        "closed_at": null,
+        "conversation": null,
+        "created_at": "2026-11-16T07:30:00Z",
+        "detail": "qz-fu-chat-task-detail",
+        "due_at": "2026-11-16T16:30:00Z",
+        "id": "qz-fu-chat",
+        "origin": "chat",
+        "result": null,
+        "run_id": null,
+        "status": "Open",
+        "task": "qz-fu-chat-task",
+        "ui": {
+          "origin_label": "대화에서 등록(브라우저 사용)",
+          "status_label": "예정",
+          "tone": "muted",
+          "uses_browser": true
+        }
+      },
+      {
+        "closed_at": null,
+        "conversation": null,
+        "created_at": "2026-11-16T07:30:00Z",
+        "detail": "qz-fu-briefing-task-detail",
+        "due_at": "2026-11-16T16:30:00Z",
+        "id": "qz-fu-briefing",
+        "origin": "briefing",
+        "result": null,
+        "run_id": null,
+        "status": "Open",
+        "task": "qz-fu-briefing-task",
+        "ui": {
+          "origin_label": "브리핑에서 등록(위임 사이트 읽기만)",
+          "status_label": "예정",
+          "tone": "muted",
+          "uses_browser": false
+        }
+      },
+      {
+        "closed_at": null,
+        "conversation": null,
+        "created_at": "2026-11-16T07:30:00Z",
+        "detail": "qz-fu-user-task-detail",
+        "due_at": "2026-11-16T16:30:00Z",
+        "id": "qz-fu-user",
+        "origin": "user",
+        "result": null,
+        "run_id": null,
+        "status": "Open",
+        "task": "qz-fu-user-task",
+        "ui": {
+          "origin_label": "브라우저 허용함",
+          "status_label": "예정",
+          "tone": "muted",
+          "uses_browser": true
+        }
+      }
+    ],
+    "gateway_binds": [
+      "192.168.0.10:8790"
+    ],
+    "goals": [
+      {
+        "children": [
+          {
+            "by_review": true,
+            "child": "qz-goal-a-child",
+            "goal": "qz-goal-a",
+            "kind": "followup"
+          },
+          {
+            "by_review": false,
+            "child": "qz-goal-a-child2",
+            "goal": "qz-goal-a",
+            "kind": "routine"
+          }
+        ],
+        "goal": {
+          "closed_at": null,
+          "conversation": null,
+          "created_at": "2026-11-15T04:30:00Z",
+          "deadline": "2026-11-19T10:30:00Z",
+          "id": "qz-goal-a",
+          "interests": "qz-goal-a-interests",
+          "next_review_at": "2026-11-16T15:30:00Z",
+          "purpose": "qz-goal-a-purpose",
+          "review_every_hours": 24,
+          "status": "Active",
+          "success": "qz-goal-a-success",
+          "title": "qz-goal-a-title",
+          "updated_at": "2026-11-16T08:30:00Z"
+        },
+        "log": [
+          {
+            "at": "2026-11-16T08:30:00Z",
+            "kind": "review",
+            "text": "qz-goal-a-log"
+          }
+        ],
+        "ui": {
+          "open": true,
+          "status_label": "진행 중"
+        }
+      },
+      {
+        "children": [],
+        "goal": {
+          "closed_at": null,
+          "conversation": null,
+          "created_at": "2026-11-15T04:30:00Z",
+          "deadline": null,
+          "id": "qz-goal-b",
+          "interests": "",
+          "next_review_at": null,
+          "purpose": "",
+          "review_every_hours": 24,
+          "status": "Waiting",
+          "success": "qz-goal-b-success",
+          "title": "qz-goal-b-title",
+          "updated_at": "2026-11-16T08:30:00Z"
+        },
+        "log": [],
+        "ui": {
+          "open": true,
+          "status_label": "사람 차례"
+        }
+      },
+      {
+        "children": [],
+        "goal": {
+          "closed_at": "2026-11-16T09:30:00Z",
+          "conversation": null,
+          "created_at": "2026-11-15T04:30:00Z",
+          "deadline": null,
+          "id": "qz-goal-c",
+          "interests": "",
+          "next_review_at": null,
+          "purpose": "",
+          "review_every_hours": 24,
+          "status": "Done",
+          "success": "qz-goal-c-success",
+          "title": "qz-goal-c-title",
+          "updated_at": "2026-11-16T08:30:00Z"
+        },
+        "log": [],
+        "ui": {
+          "open": false,
+          "status_label": "완료"
+        }
+      }
+    ],
+    "google": {
+      "account": "qz-google-account",
+      "connected": true,
+      "consent_minutes_left": null,
+      "has_client": true,
+      "scopes": "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events",
+      "sources": [
+        {
+          "label": "캘린더",
+          "state": {
+            "baseline_at": "2026-11-16T08:53:00Z",
+            "checked_at": "2026-11-16T10:00:00Z",
+            "cursor": "c",
+            "last_error": null,
+            "source": "google-calendar"
+          }
+        },
+        {
+          "label": "메일",
+          "state": {
+            "baseline_at": "2026-11-16T08:53:00Z",
+            "checked_at": "2026-11-16T10:00:00Z",
+            "cursor": "c",
+            "last_error": null,
+            "source": "gmail"
+          }
+        }
+      ],
+      "ui": {
+        "has_calendar_write": true,
+        "has_gmail_send": true,
+        "scopes": [
+          {
+            "granted": true,
+            "label": "메일 읽기"
+          },
+          {
+            "granted": true,
+            "label": "캘린더 읽기"
+          },
+          {
+            "granted": true,
+            "label": "메일 발송"
+          },
+          {
+            "granted": true,
+            "label": "캘린더 쓰기"
+          }
+        ],
+        "status": "연결됨",
+        "tone": "ok"
+      }
+    },
+    "images": {
+      "daily_cap": 1.5,
+      "key_set": true,
+      "recent": [
+        {
+          "background": "transparent",
+          "cost_usd": 0.03,
+          "created_at": "2026-11-16T08:30:00Z",
+          "error": null,
+          "file_id": null,
+          "finished_at": "2026-11-16T08:30:00Z",
+          "id": "img-a",
+          "input_tokens": 10,
+          "inputs": 2,
+          "model": "qz-img-a-model",
+          "output_tokens": 1000,
+          "prompt": "qz-img-a-prompt",
+          "quality": "qz-img-a-quality",
+          "run_id": null,
+          "size": "qz-img-a-size",
+          "status": "done",
+          "ui": {
+            "label": "만듦",
+            "tone": "ok"
+          }
+        },
+        {
+          "background": "transparent",
+          "cost_usd": 0.03,
+          "created_at": "2026-11-16T08:30:00Z",
+          "error": "qz-img-b-error",
+          "file_id": null,
+          "finished_at": "2026-11-16T08:30:00Z",
+          "id": "img-b",
+          "input_tokens": 10,
+          "inputs": 2,
+          "model": "qz-img-b-model",
+          "output_tokens": 1000,
+          "prompt": "qz-img-b-prompt",
+          "quality": "qz-img-b-quality",
+          "run_id": null,
+          "size": "qz-img-b-size",
+          "status": "failed",
+          "ui": {
+            "label": "실패",
+            "tone": "bad"
+          }
+        }
+      ],
+      "today_usd": 0.03
+    },
+    "keep_days": 90,
+    "kept_files": [
+      {
+        "file": {
+          "conversation": null,
+          "created_at": "2026-11-14T18:30:00Z",
+          "direction": "out",
+          "id": "f_0a1b2c3d4e5f",
+          "kind": "image",
+          "mime": "image/png",
+          "name": "qz-kept-name",
+          "rel_path": "out/x",
+          "run_id": null,
+          "sha256": "x",
+          "size": 4096
+        },
+        "kept_at": "2026-11-16T07:30:00Z",
+        "note": "qz-kept-note",
+        "title": "qz-kept-title",
+        "ui": {
+          "direction_label": "만든 것",
+          "kind_label": "이미지",
+          "size_text": "4 KB"
+        }
+      }
+    ],
+    "last_backup": {
+      "at": "2026-11-16T09:30:00Z",
+      "ok": true,
+      "text": "qz-last-backup"
+    },
+    "last_briefing": {
+      "at": "2026-11-16T09:30:00Z",
+      "ok": false,
+      "text": "qz-last-briefing"
+    },
+    "last_compact": {
+      "at": "2026-11-16T09:30:00Z",
+      "ok": true,
+      "text": "qz-last-compact"
+    },
+    "last_precheck": {
+      "at": "2026-11-16T09:30:00Z",
+      "ok": true,
+      "text": "qz-last-precheck"
+    },
+    "last_remember": {
+      "at": "2026-11-16T09:30:00Z",
+      "ok": true,
+      "text": "qz-last-remember"
+    },
+    "memories": [
+      {
+        "body": "qz-mem-me-body",
+        "created_at": "2026-11-16T05:30:00Z",
+        "revision": 3,
+        "section": "Me",
+        "slug": "qz-mem-me",
+        "summary": "qz-mem-me-summary",
+        "title": "qz-mem-me-title",
+        "ui": {
+          "section_key": "me",
+          "section_label": "나"
+        },
+        "updated_at": "2026-11-16T09:30:00Z"
+      },
+      {
+        "body": "qz-mem-topic-body",
+        "created_at": "2026-11-16T05:30:00Z",
+        "revision": 2,
+        "section": "Topic",
+        "slug": "qz-mem-topic",
+        "summary": "qz-mem-topic-summary",
+        "title": "qz-mem-topic-title",
+        "ui": {
+          "section_key": "topic",
+          "section_label": "주제"
+        },
+        "updated_at": "2026-11-16T08:30:00Z"
+      },
+      {
+        "body": "qz-mem-area-body",
+        "created_at": "2026-11-16T05:30:00Z",
+        "revision": 1,
+        "section": "Area",
+        "slug": "qz-mem-area",
+        "summary": "qz-mem-area-summary",
+        "title": "qz-mem-area-title",
+        "ui": {
+          "section_key": "area",
+          "section_label": "영역"
+        },
+        "updated_at": "2026-11-16T07:30:00Z"
+      }
+    ],
+    "notice_rules": [
+      {
+        "created_at": "2026-11-16T01:30:00Z",
+        "key": "qz-rule-key",
+        "label": "qz-rule-label",
+        "rule": "mute",
+        "ui": {
+          "rule_label": "필요 없어요"
+        }
+      }
+    ],
+    "now": "2026-11-16T10:30:00Z",
+    "nudges": [
+      {
+        "created_at": "2026-11-16T01:30:00Z",
+        "due_at": "2026-11-18T10:30:00Z",
+        "goal": null,
+        "id": "qz-nudge-a",
+        "note": "qz-nudge-a-note",
+        "stage": 0,
+        "status": "open",
+        "title": "qz-nudge-a-title",
+        "ui": {
+          "stage_label": "아직 알리지 않음"
+        }
+      },
+      {
+        "created_at": "2026-11-16T01:30:00Z",
+        "due_at": "2026-11-17T06:30:00Z",
+        "goal": null,
+        "id": "qz-nudge-b",
+        "note": "",
+        "stage": 2,
+        "status": "open",
+        "title": "qz-nudge-b-title",
+        "ui": {
+          "stage_label": "알림 보냄"
+        }
+      }
+    ],
+    "profile": {
+      "avatar": {
+        "by": "owner",
+        "height": 800,
+        "id": "a_0123456789abcdef01234567",
+        "mime": "image/png",
+        "set_at": "2026-11-16T09:00:00Z",
+        "size": 123456,
+        "ui": {
+          "by_label": "내가 정함",
+          "facts": "800×800 · PNG · 121 KB"
+        },
+        "width": 800
+      },
+      "name": "qz-profile-name",
+      "name_set": true
+    },
+    "quiet_busy": 2,
+    "quiet_calendar": true,
+    "quiet_except": "qz-quiet-except",
+    "quiet_hours": "23:00-07:00",
+    "rotate_tokens": 150000,
+    "routine_wakes": "12",
+    "routines": [
+      {
+        "next": "2026-11-16T12:30:00Z",
+        "routine": {
+          "conversation": null,
+          "created_at": "2026-11-14T08:30:00Z",
+          "failures": 0,
+          "id": "qz-rt-active",
+          "input": {},
+          "last_ok": true,
+          "last_run_at": "2026-11-16T09:30:00Z",
+          "last_text": "qz-rt-active-last",
+          "name": "qz-rt-active-name",
+          "next_at": null,
+          "runs": 7,
+          "script": "qz-rt-active-script",
+          "status": "Active",
+          "task": "qz-rt-active-task",
+          "tools": [
+            "qz-rt-active-tool"
+          ],
+          "trigger": {
+            "Cron": "0 9 * * *"
+          },
+          "until": null,
+          "updated_at": "2026-11-16T09:30:00Z",
+          "wakes": 2
+        },
+        "runs": [
+          {
+            "at": "2026-11-16T09:30:00Z",
+            "ok": true,
+            "text": "qz-rt-active-run-ok",
+            "woke": true
+          },
+          {
+            "at": "2026-11-16T08:30:00Z",
+            "ok": false,
+            "text": "qz-rt-active-run-fail",
+            "woke": false
+          }
+        ],
+        "ui": {
+          "can_pause": true,
+          "can_run": true,
+          "resume_label": null,
+          "status_label": "켜짐",
+          "tone": "ok",
+          "trigger_label": "cron 0 9 * * *"
+        }
+      },
+      {
+        "next": "2026-11-16T12:30:00Z",
+        "routine": {
+          "conversation": null,
+          "created_at": "2026-11-14T08:30:00Z",
+          "failures": 0,
+          "id": "qz-rt-paused",
+          "input": {},
+          "last_ok": true,
+          "last_run_at": "2026-11-16T09:30:00Z",
+          "last_text": "qz-rt-paused-last",
+          "name": "qz-rt-paused-name",
+          "next_at": null,
+          "runs": 7,
+          "script": null,
+          "status": "Paused",
+          "task": "qz-rt-paused-task",
+          "tools": [],
+          "trigger": {
+            "Every": {
+              "minutes": 90,
+              "window": "09:00-18:00"
+            }
+          },
+          "until": null,
+          "updated_at": "2026-11-16T09:30:00Z",
+          "wakes": 2
+        },
+        "runs": [
+          {
+            "at": "2026-11-16T09:30:00Z",
+            "ok": true,
+            "text": "qz-rt-paused-run-ok",
+            "woke": true
+          },
+          {
+            "at": "2026-11-16T08:30:00Z",
+            "ok": false,
+            "text": "qz-rt-paused-run-fail",
+            "woke": false
+          }
+        ],
+        "ui": {
+          "can_pause": false,
+          "can_run": false,
+          "resume_label": "다시 켜기",
+          "status_label": "멈춤",
+          "tone": "muted",
+          "trigger_label": "90분마다(09:00-18:00)"
+        }
+      },
+      {
+        "next": "2026-11-16T12:30:00Z",
+        "routine": {
+          "conversation": null,
+          "created_at": "2026-11-14T08:30:00Z",
+          "failures": 3,
+          "id": "qz-rt-review",
+          "input": {},
+          "last_ok": true,
+          "last_run_at": "2026-11-16T09:30:00Z",
+          "last_text": "qz-rt-review-last",
+          "name": "qz-rt-review-name",
+          "next_at": null,
+          "runs": 7,
+          "script": "qz-rt-review-script",
+          "status": "Review",
+          "task": "qz-rt-review-task",
+          "tools": [
+            "qz-rt-review-tool"
+          ],
+          "trigger": {
+            "Change": "gmail"
+          },
+          "until": null,
+          "updated_at": "2026-11-16T09:30:00Z",
+          "wakes": 2
+        },
+        "runs": [
+          {
+            "at": "2026-11-16T09:30:00Z",
+            "ok": true,
+            "text": "qz-rt-review-run-ok",
+            "woke": true
+          },
+          {
+            "at": "2026-11-16T08:30:00Z",
+            "ok": false,
+            "text": "qz-rt-review-run-fail",
+            "woke": false
+          }
+        ],
+        "ui": {
+          "can_pause": false,
+          "can_run": false,
+          "resume_label": "켜기(승인)",
+          "status_label": "승인 대기",
+          "tone": "warn",
+          "trigger_label": "새 변화마다(gmail, 사전 체크 때)"
+        }
+      },
+      {
+        "next": "2026-11-16T12:30:00Z",
+        "routine": {
+          "conversation": null,
+          "created_at": "2026-11-14T08:30:00Z",
+          "failures": 0,
+          "id": "qz-rt-done",
+          "input": {},
+          "last_ok": true,
+          "last_run_at": "2026-11-16T09:30:00Z",
+          "last_text": "qz-rt-done-last",
+          "name": "qz-rt-done-name",
+          "next_at": null,
+          "runs": 7,
+          "script": null,
+          "status": "Done",
+          "task": "qz-rt-done-task",
+          "tools": [],
+          "trigger": {
+            "Cron": "0 9 * * *"
+          },
+          "until": null,
+          "updated_at": "2026-11-16T09:30:00Z",
+          "wakes": 2
+        },
+        "runs": [
+          {
+            "at": "2026-11-16T09:30:00Z",
+            "ok": true,
+            "text": "qz-rt-done-run-ok",
+            "woke": true
+          },
+          {
+            "at": "2026-11-16T08:30:00Z",
+            "ok": false,
+            "text": "qz-rt-done-run-fail",
+            "woke": false
+          }
+        ],
+        "ui": {
+          "can_pause": false,
+          "can_run": false,
+          "resume_label": null,
+          "status_label": "끝남",
+          "tone": "muted",
+          "trigger_label": "cron 0 9 * * *"
+        }
+      }
+    ],
+    "schedules": [
+      {
+        "action": "morning_briefing",
+        "enabled": true,
+        "id": "morning-briefing",
+        "kind": "Cron",
+        "last_fired_at": null,
+        "max_delay_secs": 3600,
+        "next_due_at": "2026-11-16T22:30:00Z",
+        "payload": {},
+        "spec": "30 7 * * *",
+        "timezone": "Asia/Seoul",
+        "ui": {
+          "cron_text": "매일 07:30",
+          "label": "아침 브리핑"
+        }
+      },
+      {
+        "action": "precheck",
+        "enabled": true,
+        "id": "hourly-precheck",
+        "kind": "Cron",
+        "last_fired_at": "2026-11-16T10:00:00Z",
+        "max_delay_secs": 1800,
+        "next_due_at": "2026-11-16T11:00:00Z",
+        "payload": {},
+        "spec": "0 * * * *",
+        "timezone": "Asia/Seoul",
+        "ui": {
+          "cron_text": "매시 정각",
+          "label": "사전 체크(설정 파일)"
+        }
+      }
+    ],
+    "scripts_sandbox": "qz-script-sandbox",
+    "security_mode": "Open",
+    "session": {
+      "cost_total_usd": 0.192,
+      "created_at": "2026-11-16T08:23:00Z",
+      "id": "0a241c2a-610c-4b1b-af85-195abbac8af5",
+      "last_compacted_at": null,
+      "last_context_tokens": 27585,
+      "last_used_at": "2026-11-16T10:12:00Z",
+      "role": "Resident",
+      "runs_since_compact": 11,
+      "sandbox": "lucia",
+      "started": true,
+      "status": "active",
+      "ui": {
+        "short_id": "0a241c2a"
+      }
+    },
+    "setup": {
+      "complete": true,
+      "config_path": "qz-config-path",
+      "dismissed": false,
+      "env": [
+        {
+          "command": null,
+          "detail": "qz-config-path — 고친 뒤에는 데몬을 다시 시작합니다.",
+          "key": "config",
+          "label": "설정 파일",
+          "tone": "info"
+        },
+        {
+          "command": "deploy/create-sandbox.sh",
+          "detail": "아직 점검하지 않았습니다.",
+          "key": "sandbox",
+          "label": "상주 샌드박스",
+          "tone": "muted"
+        },
+        {
+          "command": "deploy/create-browser-sandbox.sh",
+          "detail": "아직 점검하지 않았습니다.",
+          "key": "browser",
+          "label": "브라우저 샌드박스",
+          "tone": "muted"
+        },
+        {
+          "command": "luciad script-check",
+          "detail": "켜져 있습니다(qz-script-sandbox). 실제 샌드박스에서 확인하려면 점검 명령을 돌립니다.",
+          "key": "scripts",
+          "label": "스크립트 샌드박스",
+          "tone": "ok"
+        },
+        {
+          "command": null,
+          "detail": "켜져 있습니다(192.168.0.10:8790).",
+          "key": "gateway",
+          "label": "접속 API(앱)",
+          "tone": "ok"
+        },
+        {
+          "command": "luciad check",
+          "detail": "점검 2개 중 1개가 실패했습니다: qz-check-b",
+          "key": "checks",
+          "label": "실행 환경 점검",
+          "tone": "bad"
+        }
+      ],
+      "steps": [
+        {
+          "icon": "smile",
+          "key": "profile",
+          "state": "done",
+          "state_label": "완료",
+          "summary": "이름 “qz-profile-name” · 프로필 그림 있음",
+          "title": "이름과 모습",
+          "tone": "ok"
+        },
+        {
+          "icon": "chat",
+          "key": "discord",
+          "state": "done",
+          "state_label": "완료",
+          "summary": "봇 qz-discord-bot 연결됨 · 소유자 설정됨",
+          "title": "Discord",
+          "tone": "ok"
+        },
+        {
+          "icon": "mail",
+          "key": "google",
+          "state": "done",
+          "state_label": "완료",
+          "summary": "연결됨 · qz-google-account",
+          "title": "Google 메일·일정",
+          "tone": "ok"
+        },
+        {
+          "icon": "bell",
+          "key": "app",
+          "state": "done",
+          "state_label": "완료",
+          "summary": "앱 토큰 1개 · 알림 받는 곳 앱 qz-client-a-name · 푸시 켜짐",
+          "title": "앱과 푸시",
+          "tone": "ok"
+        },
+        {
+          "icon": "spark",
+          "key": "images",
+          "state": "done",
+          "state_label": "완료",
+          "summary": "OpenAI 키 저장됨 · 하루 예산 $1.50",
+          "title": "이미지 생성",
+          "tone": "ok"
+        },
+        {
+          "icon": "server",
+          "key": "env",
+          "state": "optional",
+          "state_label": "선택",
+          "summary": "점검 2개 중 1개가 실패했습니다: qz-check-b",
+          "title": "환경",
+          "tone": "muted"
+        }
+      ]
+    },
+    "signals": {
+      "classify_daily": 40,
+      "classify_used": 11,
+      "consistency": true,
+      "enabled": true,
+      "evening": false,
+      "interests": "qz-signals-interests",
+      "poll_minutes": 7,
+      "recent": [
+        {
+          "decided_at": null,
+          "id": 1,
+          "interest": "qz-sig-interest",
+          "key": "qz-sig-key-now",
+          "payload": {},
+          "reason": "qz-sig-now-reason",
+          "received_at": "2026-11-16T09:30:00Z",
+          "source": "gmail",
+          "summary": "qz-sig-now-summary",
+          "ui": {
+            "verdict_label": "지금 알림"
+          },
+          "verdict": "now",
+          "woke_at": null
+        },
+        {
+          "decided_at": null,
+          "id": 2,
+          "interest": null,
+          "key": "qz-sig-key-digest",
+          "payload": {},
+          "reason": "qz-sig-digest-reason",
+          "received_at": "2026-11-16T08:30:00Z",
+          "source": "gmail",
+          "summary": "qz-sig-digest-summary",
+          "ui": {
+            "verdict_label": "소식"
+          },
+          "verdict": "digest",
+          "woke_at": null
+        },
+        {
+          "decided_at": null,
+          "id": 3,
+          "interest": null,
+          "key": "qz-sig-key-drop",
+          "payload": {},
+          "reason": "qz-sig-drop-reason",
+          "received_at": "2026-11-16T07:30:00Z",
+          "source": "gmail",
+          "summary": "qz-sig-drop-summary",
+          "ui": {
+            "verdict_label": "버림"
+          },
+          "verdict": "drop",
+          "woke_at": null
+        },
+        {
+          "decided_at": null,
+          "id": 4,
+          "interest": null,
+          "key": "qz-sig-key-briefing",
+          "payload": {},
+          "reason": "qz-sig-briefing-reason",
+          "received_at": "2026-11-16T06:30:00Z",
+          "source": "gmail",
+          "summary": "qz-sig-briefing-summary",
+          "ui": {
+            "verdict_label": "브리핑에서 다룸"
+          },
+          "verdict": "briefing",
+          "woke_at": null
+        },
+        {
+          "decided_at": null,
+          "id": 9,
+          "interest": null,
+          "key": "qz-sig-key-pending",
+          "payload": {},
+          "reason": null,
+          "received_at": "2026-11-16T04:30:00Z",
+          "source": "gmail",
+          "summary": "qz-sig-pending-summary",
+          "ui": {
+            "verdict_label": "분류 대기"
+          },
+          "verdict": null,
+          "woke_at": null
+        }
+      ],
+      "wake_daily": 9,
+      "wake_used": 3,
+      "weekly": true
+    },
+    "site_grants": [
+      {
+        "actions": true,
+        "created_at": "2026-11-13T12:30:00Z",
+        "expires_at": null,
+        "host": "qz-grant-chat.example.test",
+        "id": "qz-grant-chat",
+        "last_used_at": "2026-11-16T07:30:00Z",
+        "login": true,
+        "origin": "chat",
+        "purpose": "qz-grant-chat-purpose",
+        "revoked_at": null,
+        "ui": {
+          "active": true,
+          "origin_label": "대화에서 위임",
+          "scope_text": "사람 없이 열고 읽기, 저장된 로그인으로 묻지 않고 다시 로그인, 승인이 필요한 브라우저 동작(폼 제출 등)도 묻지 않고 하기. 결제·주문·송금·탈퇴·비밀번호 바꾸기·로그아웃·파일 올리기는 그래도 하지 않습니다."
+        },
+        "uses": 4
+      },
+      {
+        "actions": false,
+        "created_at": "2026-11-13T12:30:00Z",
+        "expires_at": "2026-11-18T10:30:00Z",
+        "host": "qz-grant-egress.example.test",
+        "id": "qz-grant-egress",
+        "last_used_at": "2026-11-16T07:30:00Z",
+        "login": false,
+        "origin": "egress",
+        "purpose": "qz-grant-egress-purpose",
+        "revoked_at": null,
+        "ui": {
+          "active": true,
+          "origin_label": "카드에서 계속 허용",
+          "scope_text": "사람 없이 열고 읽기. 결제·주문·송금·탈퇴·비밀번호 바꾸기·로그아웃·파일 올리기는 그래도 하지 않습니다."
+        },
+        "uses": 4
+      },
+      {
+        "actions": false,
+        "created_at": "2026-11-13T12:30:00Z",
+        "expires_at": null,
+        "host": "qz-grant-admin.example.test",
+        "id": "qz-grant-admin",
+        "last_used_at": "2026-11-16T07:30:00Z",
+        "login": false,
+        "origin": "admin",
+        "purpose": "qz-grant-admin-purpose",
+        "revoked_at": null,
+        "ui": {
+          "active": true,
+          "origin_label": "관리 페이지에서 위임",
+          "scope_text": "사람 없이 열고 읽기. 결제·주문·송금·탈퇴·비밀번호 바꾸기·로그아웃·파일 올리기는 그래도 하지 않습니다."
+        },
+        "uses": 4
+      },
+      {
+        "actions": false,
+        "created_at": "2026-11-13T12:30:00Z",
+        "expires_at": "2026-11-18T10:30:00Z",
+        "host": "qz-grant-once.example.test",
+        "id": "qz-grant-once",
+        "last_used_at": "2026-11-16T07:30:00Z",
+        "login": false,
+        "origin": "once",
+        "purpose": "qz-grant-once-purpose",
+        "revoked_at": null,
+        "ui": {
+          "active": true,
+          "origin_label": "이번만",
+          "scope_text": "사람 없이 열고 읽기. 결제·주문·송금·탈퇴·비밀번호 바꾸기·로그아웃·파일 올리기는 그래도 하지 않습니다."
+        },
+        "uses": 4
+      },
+      {
+        "actions": false,
+        "created_at": "2026-11-13T12:30:00Z",
+        "expires_at": null,
+        "host": "qz-grant-watch.example.test",
+        "id": "qz-grant-watch",
+        "last_used_at": "2026-11-16T07:30:00Z",
+        "login": false,
+        "origin": "watch",
+        "purpose": "qz-grant-watch-purpose",
+        "revoked_at": null,
+        "ui": {
+          "active": true,
+          "origin_label": "로그인 감시 승인",
+          "scope_text": "사람 없이 열고 읽기. 결제·주문·송금·탈퇴·비밀번호 바꾸기·로그아웃·파일 올리기는 그래도 하지 않습니다."
+        },
+        "uses": 4
+      },
+      {
+        "actions": false,
+        "created_at": "2026-11-13T12:30:00Z",
+        "expires_at": null,
+        "host": "qz-grant-revoked.example.test",
+        "id": "qz-grant-revoked",
+        "last_used_at": "2026-11-16T07:30:00Z",
+        "login": false,
+        "origin": "chat",
+        "purpose": "qz-grant-revoked-purpose",
+        "revoked_at": "2026-11-16T09:30:00Z",
+        "ui": {
+          "active": false,
+          "origin_label": "대화에서 위임",
+          "scope_text": "사람 없이 열고 읽기. 결제·주문·송금·탈퇴·비밀번호 바꾸기·로그아웃·파일 올리기는 그래도 하지 않습니다."
+        },
+        "uses": 4
+      }
+    ],
+    "task_channel": "1234567890123456789",
+    "tasks_closed": [
+      {
+        "base": null,
+        "brief": "qz-task-done-brief",
+        "closed_at": "2026-11-16T09:30:00Z",
+        "conversation": null,
+        "created_at": "2026-11-16T06:30:00Z",
+        "id": "qz-task-done",
+        "initiator": "human",
+        "kind": "general",
+        "repo": null,
+        "result": "qz-task-done-result",
+        "run_id": null,
+        "sandbox": null,
+        "session_id": null,
+        "source": "discord",
+        "status": "done",
+        "thread": false,
+        "title": "qz-task-done-title",
+        "ui": {
+          "status_label": "완료",
+          "tone": "ok"
+        },
+        "updated_at": "2026-11-16T09:30:00Z"
+      },
+      {
+        "base": null,
+        "brief": "qz-task-failed-brief",
+        "closed_at": "2026-11-16T09:30:00Z",
+        "conversation": null,
+        "created_at": "2026-11-16T06:30:00Z",
+        "id": "qz-task-failed",
+        "initiator": "human",
+        "kind": "general",
+        "repo": null,
+        "result": "qz-task-failed-result",
+        "run_id": null,
+        "sandbox": null,
+        "session_id": null,
+        "source": "discord",
+        "status": "failed",
+        "thread": false,
+        "title": "qz-task-failed-title",
+        "ui": {
+          "status_label": "실패",
+          "tone": "warn"
+        },
+        "updated_at": "2026-11-16T09:30:00Z"
+      }
+    ],
+    "tasks_open": [
+      {
+        "base": null,
+        "brief": "qz-task-run-brief",
+        "closed_at": null,
+        "conversation": null,
+        "created_at": "2026-11-16T06:30:00Z",
+        "id": "qz-task-run",
+        "initiator": "human",
+        "kind": "general",
+        "repo": null,
+        "result": "qz-task-run-result",
+        "run_id": null,
+        "sandbox": null,
+        "session_id": null,
+        "source": "discord",
+        "status": "running",
+        "thread": true,
+        "title": "qz-task-run-title",
+        "ui": {
+          "status_label": "하는 중",
+          "tone": "warn"
+        },
+        "updated_at": "2026-11-16T09:30:00Z"
+      },
+      {
+        "base": null,
+        "brief": "qz-task-wait-brief",
+        "closed_at": null,
+        "conversation": null,
+        "created_at": "2026-11-16T06:30:00Z",
+        "id": "qz-task-wait",
+        "initiator": "human",
+        "kind": "general",
+        "repo": null,
+        "result": "qz-task-wait-result",
+        "run_id": null,
+        "sandbox": null,
+        "session_id": null,
+        "source": "discord",
+        "status": "waiting_approval",
+        "thread": false,
+        "title": "qz-task-wait-title",
+        "ui": {
+          "status_label": "승인 대기",
+          "tone": "warn"
+        },
+        "updated_at": "2026-11-16T09:30:00Z"
+      }
+    ],
+    "today": {
+      "cache_tokens": 380000,
+      "cost_usd": 0.192,
+      "input_tokens": 412330,
+      "model_runs": 9,
+      "output_tokens": 6210,
+      "runs": 14
+    },
+    "tz": "Asia/Seoul",
+    "ui": {
+      "browser_watches": 1,
+      "kept_files_total_text": "4 KB",
+      "memory_bytes": 153,
+      "security_mode": "open"
+    },
+    "watch_now_daily": 17,
+    "watches": [
+      [
+        {
+          "changes_in_row": 0,
+          "created_at": "2026-11-15T14:30:00Z",
+          "end_text": "qz-w-items-end",
+          "exclude_words": "qz-w-items-exclude",
+          "failures": 2,
+          "fetcher": "browser",
+          "id": "qz-w-items",
+          "include_words": "qz-w-items-include",
+          "interval_minutes": 30,
+          "item_pattern": "qz-w-items-pattern",
+          "mode": "items",
+          "notify": "classify",
+          "paused_reason": "",
+          "run_id": null,
+          "sent_count": 0,
+          "sent_day": "",
+          "start_text": "qz-w-items-start",
+          "status": "Active",
+          "ui": {
+            "can_pause": true,
+            "can_resume": false,
+            "editable": true,
+            "interval_min": 3,
+            "is_items": true,
+            "notify_label": "작은 모델이 골라 알림",
+            "status_label": "감시 중",
+            "tone": "ok",
+            "uses_browser": true,
+            "via_label": "브라우저로 읽기"
+          },
+          "updated_at": "2026-11-16T09:30:00Z",
+          "url": "https://qz-w-items.example.test/board",
+          "what": "qz-w-items-what"
+        },
+        {
+          "baseline_at": "2026-11-16T05:30:00Z",
+          "checked_at": "2026-11-16T09:30:00Z",
+          "cursor": "c",
+          "last_error": "qz-w-items-error",
+          "source": "qz-w-items"
+        }
+      ],
+      [
+        {
+          "changes_in_row": 0,
+          "created_at": "2026-11-15T14:30:00Z",
+          "end_text": "qz-w-region-end",
+          "exclude_words": "qz-w-region-exclude",
+          "failures": 2,
+          "fetcher": "plain",
+          "id": "qz-w-region",
+          "include_words": "qz-w-region-include",
+          "interval_minutes": 30,
+          "item_pattern": "qz-w-region-pattern",
+          "mode": "region",
+          "notify": "classify",
+          "paused_reason": "noise",
+          "run_id": null,
+          "sent_count": 0,
+          "sent_day": "",
+          "start_text": "qz-w-region-start",
+          "status": "Paused",
+          "ui": {
+            "can_pause": false,
+            "can_resume": true,
+            "editable": true,
+            "interval_min": 10,
+            "is_items": false,
+            "notify_label": "작은 모델이 골라 알림",
+            "status_label": "멈춤(계속 바뀜)",
+            "tone": "warn",
+            "uses_browser": false,
+            "via_label": "로그인 없이 HTTP"
+          },
+          "updated_at": "2026-11-16T09:30:00Z",
+          "url": "https://qz-w-region.example.test/board",
+          "what": "qz-w-region-what"
+        },
+        {
+          "baseline_at": "2026-11-16T05:30:00Z",
+          "checked_at": "2026-11-16T09:30:00Z",
+          "cursor": "c",
+          "last_error": null,
+          "source": "qz-w-region"
+        }
+      ],
+      [
+        {
+          "changes_in_row": 0,
+          "created_at": "2026-11-15T14:30:00Z",
+          "end_text": "qz-w-login-end",
+          "exclude_words": "qz-w-login-exclude",
+          "failures": 2,
+          "fetcher": "session",
+          "id": "qz-w-login",
+          "include_words": "qz-w-login-include",
+          "interval_minutes": 30,
+          "item_pattern": "qz-w-login-pattern",
+          "mode": "items",
+          "notify": "classify",
+          "paused_reason": "login",
+          "run_id": null,
+          "sent_count": 0,
+          "sent_day": "",
+          "start_text": "qz-w-login-start",
+          "status": "Paused",
+          "ui": {
+            "can_pause": false,
+            "can_resume": true,
+            "editable": true,
+            "interval_min": 3,
+            "is_items": true,
+            "notify_label": "작은 모델이 골라 알림",
+            "status_label": "멈춤(로그인 필요)",
+            "tone": "warn",
+            "uses_browser": false,
+            "via_label": "로그인 세션으로 HTTP"
+          },
+          "updated_at": "2026-11-16T09:30:00Z",
+          "url": "https://qz-w-login.example.test/board",
+          "what": "qz-w-login-what"
+        },
+        null
+      ],
+      [
+        {
+          "changes_in_row": 0,
+          "created_at": "2026-11-15T14:30:00Z",
+          "end_text": "qz-w-pending-end",
+          "exclude_words": "qz-w-pending-exclude",
+          "failures": 2,
+          "fetcher": "plain",
+          "id": "qz-w-pending",
+          "include_words": "qz-w-pending-include",
+          "interval_minutes": 30,
+          "item_pattern": "qz-w-pending-pattern",
+          "mode": "region",
+          "notify": "classify",
+          "paused_reason": "",
+          "run_id": null,
+          "sent_count": 0,
+          "sent_day": "",
+          "start_text": "qz-w-pending-start",
+          "status": "Pending",
+          "ui": {
+            "can_pause": false,
+            "can_resume": false,
+            "editable": false,
+            "interval_min": 10,
+            "is_items": false,
+            "notify_label": "작은 모델이 골라 알림",
+            "status_label": "승인 대기",
+            "tone": "info",
+            "uses_browser": false,
+            "via_label": "로그인 없이 HTTP"
+          },
+          "updated_at": "2026-11-16T09:30:00Z",
+          "url": "https://qz-w-pending.example.test/board",
+          "what": "qz-w-pending-what"
+        },
+        null
+      ]
+    ],
+    "week": {
+      "cache_tokens": 760000,
+      "cost_usd": 0.41,
+      "input_tokens": 812000,
+      "model_runs": 18,
+      "output_tokens": 12400,
+      "runs": 30
+    },
+    "weekly_cap": 10.0
+  }
+}

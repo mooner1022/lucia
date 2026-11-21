@@ -1,0 +1,10 @@
+{
+  "kind": "standalone",
+  "name": "Lucia",
+  "screen": {
+    "error": "qz-setup-error",
+    "min_chars": 12,
+    "token": "qz-setup-token",
+    "type": "setup"
+  }
+}

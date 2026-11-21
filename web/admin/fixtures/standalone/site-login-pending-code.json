@@ -1,0 +1,10 @@
+{
+  "kind": "standalone",
+  "name": "Lucia",
+  "screen": {
+    "code_link": "/site-login/code/qz-code-token",
+    "note": "qz-site-pending-note",
+    "site": "qz-site-login",
+    "type": "site_login_pending"
+  }
+}

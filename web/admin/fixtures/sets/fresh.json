@@ -1,0 +1,705 @@
+{
+  "consts": {
+    "activity_filters": [
+      {
+        "key": "all",
+        "label": "전체"
+      },
+      {
+        "key": "mail",
+        "label": "메일"
+      },
+      {
+        "key": "calendar",
+        "label": "일정"
+      },
+      {
+        "key": "web",
+        "label": "웹"
+      },
+      {
+        "key": "approval",
+        "label": "발송·승인"
+      },
+      {
+        "key": "files",
+        "label": "파일"
+      },
+      {
+        "key": "memory",
+        "label": "기억"
+      }
+    ],
+    "browser": {
+      "handover_keys": [
+        {
+          "key": "enter",
+          "label": "Enter"
+        },
+        {
+          "key": "tab",
+          "label": "Tab"
+        },
+        {
+          "key": "backspace",
+          "label": "⌫"
+        },
+        {
+          "key": "escape",
+          "label": "Esc"
+        },
+        {
+          "key": "up",
+          "label": "↑"
+        },
+        {
+          "key": "down",
+          "label": "↓"
+        }
+      ],
+      "handover_max_secs": 900
+    },
+    "dev": {
+      "default_cost_cap_usd": 3.0
+    },
+    "expressions": {
+      "keep_days": 30,
+      "kinds": [
+        {
+          "key": "emoji",
+          "label": "이모지",
+          "max_bytes": 262144,
+          "max_count": 200
+        },
+        {
+          "key": "sticker",
+          "label": "스티커",
+          "max_bytes": 524288,
+          "max_count": 100
+        }
+      ],
+      "max_categories": 20
+    },
+    "gateway": {
+      "app_role": "app",
+      "roles": [
+        {
+          "key": "app",
+          "label": "앱"
+        },
+        {
+          "key": "device",
+          "label": "기기"
+        }
+      ],
+      "scope_app_tools": "app_tools",
+      "scope_browser_handover": "browser_handover",
+      "scope_security_mode": "security_mode",
+      "scopes": [
+        {
+          "key": "security_mode",
+          "label": "권한 모드 바꾸기(/권한)"
+        },
+        {
+          "key": "app_tools",
+          "label": "Lucia가 앱 기능 부르기"
+        },
+        {
+          "key": "browser_handover",
+          "label": "브라우저 화면 넘겨받기"
+        }
+      ]
+    },
+    "images": {
+      "default_daily_usd": 1.0
+    },
+    "memory": {
+      "sections": [
+        {
+          "key": "me",
+          "label": "나"
+        },
+        {
+          "key": "topic",
+          "label": "주제"
+        },
+        {
+          "key": "area",
+          "label": "영역"
+        }
+      ]
+    },
+    "pages": [
+      {
+        "key": "overview",
+        "label": "홈",
+        "nav_label": "홈",
+        "path": "/",
+        "tab_label": "홈"
+      },
+      {
+        "key": "work",
+        "label": "할 일",
+        "nav_label": "할 일",
+        "path": "/work",
+        "tab_label": "할 일"
+      },
+      {
+        "key": "automation",
+        "label": "자동화",
+        "nav_label": "자동화",
+        "path": "/automation",
+        "tab_label": "자동화"
+      },
+      {
+        "key": "activity",
+        "label": "활동",
+        "nav_label": "활동",
+        "path": "/activity",
+        "tab_label": "활동"
+      },
+      {
+        "key": "memory",
+        "label": "기억",
+        "nav_label": "기억",
+        "path": "/memory",
+        "tab_label": "기억"
+      },
+      {
+        "key": "skills",
+        "label": "스킬",
+        "nav_label": "스킬",
+        "path": "/skills",
+        "tab_label": "스킬"
+      },
+      {
+        "key": "character",
+        "label": "캐릭터",
+        "nav_label": "캐릭터",
+        "path": "/character",
+        "tab_label": "캐릭터"
+      },
+      {
+        "key": "expressions",
+        "label": "이모지·스티커",
+        "nav_label": "이모지·스티커",
+        "path": "/expressions",
+        "tab_label": "이모지·스티커"
+      },
+      {
+        "key": "connections",
+        "label": "연결",
+        "nav_label": "연결",
+        "path": "/connections",
+        "tab_label": "연결"
+      },
+      {
+        "key": "browser",
+        "label": "브라우저",
+        "nav_label": "브라우저",
+        "path": "/browser",
+        "tab_label": "브라우저"
+      },
+      {
+        "key": "safety",
+        "label": "설정 · 안전",
+        "nav_label": "설정",
+        "path": "/settings",
+        "tab_label": "안전과 한도"
+      },
+      {
+        "key": "notify",
+        "label": "설정 · 알림",
+        "nav_label": "설정",
+        "path": "/settings/notify",
+        "tab_label": "알림"
+      },
+      {
+        "key": "tasks",
+        "label": "설정 · 작업",
+        "nav_label": "설정",
+        "path": "/settings/work",
+        "tab_label": "작업과 보관"
+      },
+      {
+        "key": "system",
+        "label": "시스템",
+        "nav_label": "시스템",
+        "path": "/system",
+        "tab_label": "시스템"
+      },
+      {
+        "key": "start",
+        "label": "초기 설정",
+        "nav_label": "초기 설정",
+        "path": "/start",
+        "tab_label": "초기 설정"
+      }
+    ],
+    "profile": {
+      "avatar_rules": "움직이지 않는 PNG·JPEG, 정사각형, 한 변 128~2048px, 3.0 MB까지",
+      "default_name": "Lucia",
+      "name_max_chars": 24
+    },
+    "routines": {
+      "daily_wakes_max": 24,
+      "daily_wakes_range": [
+        1,
+        200
+      ]
+    },
+    "security": {
+      "modes": [
+        {
+          "icon": "lock",
+          "items": [
+            "브라우저: 링크 이동·펼치기·스크롤 말고는 누르기·글 넣기·Enter를 모두 승인 카드로 묻는다",
+            "사이트 위임의 \"로그인\"·\"동작\"을 쓰지 않는다(묻지 않고 다시 로그인하거나 폼을 내지 않는다. 로그인 게시판 감시의 자동 재로그인도 멈춘다). 읽기 위임은 그대로",
+            "캘린더: 참석자가 없는 내 일정도 만들거나 고칠 때 카드로 묻는다",
+            "나가는 글 검사: 대화 중에도 \"막기\"로 본다(사용자 자료가 실린 글·주소는 묻는다)",
+            "반복 루틴: 새로 만들거나 고치면 모두 승인 카드를 거친다",
+            "사람 없는 실행의 기억 쓰기: 갈래와 상관없이 보류 카드로 묻는다(하루 정리는 그대로)"
+          ],
+          "keeps": [],
+          "key": "strict",
+          "label": "엄격",
+          "summary": "더 묻는다: 브라우저 입력, 위임된 로그인·동작, 캘린더, 루틴, 사람 없는 기억 쓰기, 나가는 글"
+        },
+        {
+          "icon": "shield",
+          "items": [],
+          "keeps": [],
+          "key": "standard",
+          "label": "기본",
+          "summary": "지금까지의 규칙: 외부 쓰기·위험한 브라우저 동작은 카드로 묻는다"
+        },
+        {
+          "icon": "unlock",
+          "items": [
+            "내 캘린더 쓰기·지우기: 카드 없이 바로 하고 DM에 닫힌 카드로 남긴다",
+            "브라우저: 무엇을 하는지 확인하지 못한 단추·자리 누르기 같은 가벼운 확인을 묻지 않는다. 나가는 글 검사의 \"막기\"로 생긴 승인도 건너뛴다",
+            "저장된 로그인으로 다시 로그인할 때 묻지 않는다"
+          ],
+          "keeps": [
+            "사람이 대화 중이 아닌 실행(아침 브리핑, 후속 조치, 반복 루틴, 메일 알림, 작업 세션, 코드 실행)은 기본 규칙",
+            "되돌릴 수 없이 바깥에 남는 일은 해제에서도 승인 카드를 거친다(결정 0059): 메일 발송, Discord 글·서버 관리, 브라우저의 글 등록·폼 제출·파일 올리기, 결제·주문·송금·탈퇴·비밀번호 바꾸기, 쉘의 git push·릴리스·배포·게시",
+            "사이트 위임·루틴·감시·스킬 승인처럼 모드가 끝나도 남는 권한은 카드로 묻는다",
+            "인젝션 검사에 걸린 쓰기 보류, 비밀번호를 모델에 주지 않기, VM 격리와 네트워크 제한"
+          ],
+          "key": "open",
+          "label": "해제",
+          "summary": "대화 중에는 가벼운 확인을 건너뛴다(되돌릴 수 없이 바깥에 남는 일과 사람 없는 실행은 그대로 묻는다)"
+        }
+      ]
+    },
+    "settings_tabs": [
+      "safety",
+      "notify",
+      "tasks"
+    ],
+    "signals": {
+      "daily_range": [
+        0,
+        500
+      ],
+      "poll_minutes_range": [
+        1,
+        60
+      ]
+    },
+    "watch": {
+      "browser_fetcher": "browser",
+      "fetchers": [
+        {
+          "key": "plain",
+          "label": "로그인 없이 HTTP"
+        },
+        {
+          "key": "session",
+          "label": "로그인 세션으로 HTTP"
+        },
+        {
+          "key": "browser",
+          "label": "브라우저로 읽기"
+        }
+      ],
+      "host_gap_minutes": 3,
+      "interval_max": 1440,
+      "interval_min": {
+        "items": 3,
+        "region": 10
+      },
+      "notify": [
+        {
+          "key": "now",
+          "label": "바로 알림"
+        },
+        {
+          "key": "classify",
+          "label": "작은 모델이 골라 알림"
+        },
+        {
+          "key": "digest",
+          "label": "묶음 소식만"
+        }
+      ],
+      "now_daily_range": [
+        0,
+        200
+      ]
+    },
+    "wrapup": {
+      "keep_days_range": [
+        7,
+        3650
+      ]
+    }
+  },
+  "csrf": "csrf-fixture-0123456789",
+  "kind": "page",
+  "name": "Lucia",
+  "notices": [
+    {
+      "page": "/connections",
+      "text": "Discord 봇 토큰이 없어 메시지를 주고받을 수 없습니다.",
+      "tone": "bad"
+    },
+    {
+      "page": "/connections",
+      "text": "Google이 연결되지 않아 메일·일정을 볼 수 없습니다.",
+      "tone": "warn"
+    }
+  ],
+  "overall": {
+    "label": "확인 필요",
+    "tone": "bad"
+  },
+  "pending": 0,
+  "snapshot": {
+    "access": {
+      "admin_url": null,
+      "external_blocked": false,
+      "gateway_url": null,
+      "session_external": false,
+      "totp_enabled": false,
+      "totp_pending": null
+    },
+    "activity": [],
+    "alerts": [],
+    "app": {
+      "fcm_project": null,
+      "fcm_ready": false,
+      "notify_client": null,
+      "push_preview": false
+    },
+    "approval_ttl_hours": 24,
+    "approvals": [],
+    "backup": {
+      "cron": "0 4 * * *",
+      "enabled": true,
+      "keep_days": 14,
+      "last": "11-16 19:20 · 8개 파일, 808 KB",
+      "ui": {
+        "cron_text": "매일 04:00"
+      }
+    },
+    "browser": null,
+    "checks": [
+      {
+        "detail": "정상",
+        "name": "sbx 데몬 kvm 권한",
+        "ok": true
+      },
+      {
+        "detail": "정상",
+        "name": "Claude 로그인(sbx 시크릿)",
+        "ok": true
+      },
+      {
+        "detail": "정상",
+        "name": "상주 샌드박스",
+        "ok": true
+      },
+      {
+        "detail": "정상",
+        "name": "MCP 포트 허용",
+        "ok": true
+      },
+      {
+        "detail": "정상",
+        "name": "저장소",
+        "ok": true
+      }
+    ],
+    "checks_at": "2026-11-16T10:25:00Z",
+    "clients": [],
+    "compact_at_tokens": 100000,
+    "daily_cap": null,
+    "dev_allow_hosts": "",
+    "dev_cost_cap": null,
+    "dev_local_roots": "",
+    "discord": {
+      "content_refused": false,
+      "guild_calls": false,
+      "notify": null,
+      "owner": null,
+      "prefix": null,
+      "servers": null,
+      "state": "NotConfigured",
+      "token_set": false,
+      "ui": {
+        "bot": null,
+        "state": "not_configured",
+        "status": "토큰 없음",
+        "stopped_reason": null,
+        "tone": "muted"
+      }
+    },
+    "egress_block": false,
+    "expressions": null,
+    "followups_closed": [],
+    "followups_open": [],
+    "gateway_binds": [
+      "192.168.0.10:8790"
+    ],
+    "goals": [],
+    "google": {
+      "account": null,
+      "connected": false,
+      "consent_minutes_left": null,
+      "has_client": false,
+      "scopes": null,
+      "sources": [
+        {
+          "label": "캘린더",
+          "state": null
+        },
+        {
+          "label": "메일",
+          "state": null
+        }
+      ],
+      "ui": {
+        "has_calendar_write": false,
+        "has_gmail_send": false,
+        "scopes": [],
+        "status": "연결 안 됨",
+        "tone": "muted"
+      }
+    },
+    "images": {
+      "daily_cap": 0.0,
+      "key_set": false,
+      "recent": [],
+      "today_usd": 0.0
+    },
+    "keep_days": null,
+    "kept_files": [],
+    "last_backup": null,
+    "last_briefing": null,
+    "last_compact": null,
+    "last_precheck": null,
+    "last_remember": null,
+    "memories": [],
+    "notice_rules": [],
+    "now": "2026-11-16T10:30:00Z",
+    "nudges": [],
+    "profile": {
+      "avatar": null,
+      "name": "Lucia",
+      "name_set": false
+    },
+    "quiet_busy": 0,
+    "quiet_calendar": false,
+    "quiet_except": "",
+    "quiet_hours": null,
+    "rotate_tokens": 150000,
+    "routine_wakes": null,
+    "routines": [],
+    "schedules": [
+      {
+        "action": "morning_briefing",
+        "enabled": true,
+        "id": "morning-briefing",
+        "kind": "Cron",
+        "last_fired_at": null,
+        "max_delay_secs": 3600,
+        "next_due_at": "2026-11-16T22:30:00Z",
+        "payload": {},
+        "spec": "30 7 * * *",
+        "timezone": "Asia/Seoul",
+        "ui": {
+          "cron_text": "매일 07:30",
+          "label": "아침 브리핑"
+        }
+      },
+      {
+        "action": "precheck",
+        "enabled": true,
+        "id": "hourly-precheck",
+        "kind": "Cron",
+        "last_fired_at": "2026-11-16T10:00:00Z",
+        "max_delay_secs": 1800,
+        "next_due_at": "2026-11-16T11:00:00Z",
+        "payload": {},
+        "spec": "0 * * * *",
+        "timezone": "Asia/Seoul",
+        "ui": {
+          "cron_text": "매시 정각",
+          "label": "사전 체크(설정 파일)"
+        }
+      }
+    ],
+    "scripts_sandbox": null,
+    "security_mode": "Standard",
+    "session": null,
+    "setup": {
+      "complete": false,
+      "config_path": null,
+      "dismissed": false,
+      "env": [
+        {
+          "command": null,
+          "detail": "기본 위치는 ~/.config/lucia/lucia.toml입니다(예시: 저장소의 deploy/lucia.example.toml). 고친 뒤에는 데몬을 다시 시작합니다.",
+          "key": "config",
+          "label": "설정 파일",
+          "tone": "info"
+        },
+        {
+          "command": "deploy/create-sandbox.sh",
+          "detail": "정상",
+          "key": "sandbox",
+          "label": "상주 샌드박스",
+          "tone": "ok"
+        },
+        {
+          "command": "deploy/create-browser-sandbox.sh",
+          "detail": "꺼져 있습니다(선택). 샌드박스를 만든 뒤 설정 파일의 [browser] enabled = true로 켭니다.",
+          "key": "browser",
+          "label": "브라우저 샌드박스",
+          "tone": "muted"
+        },
+        {
+          "command": "deploy/create-script-sandbox.sh",
+          "detail": "꺼져 있습니다(선택). 샌드박스를 만든 뒤 설정 파일의 [scripts] enabled = true로 켜고 점검합니다.",
+          "key": "scripts",
+          "label": "스크립트 샌드박스",
+          "tone": "muted"
+        },
+        {
+          "command": null,
+          "detail": "켜져 있습니다(192.168.0.10:8790).",
+          "key": "gateway",
+          "label": "접속 API(앱)",
+          "tone": "ok"
+        },
+        {
+          "command": "luciad check",
+          "detail": "점검 5개 모두 정상입니다.",
+          "key": "checks",
+          "label": "실행 환경 점검",
+          "tone": "ok"
+        }
+      ],
+      "steps": [
+        {
+          "icon": "smile",
+          "key": "profile",
+          "state": "optional",
+          "state_label": "선택",
+          "summary": "이름 “Lucia”(기본값) · 프로필 그림 없음",
+          "title": "이름과 모습",
+          "tone": "muted"
+        },
+        {
+          "icon": "chat",
+          "key": "discord",
+          "state": "todo",
+          "state_label": "필요",
+          "summary": "봇 토큰이 없습니다 · 소유자 없음",
+          "title": "Discord",
+          "tone": "warn"
+        },
+        {
+          "icon": "mail",
+          "key": "google",
+          "state": "optional",
+          "state_label": "선택",
+          "summary": "연결 안 됨",
+          "title": "Google 메일·일정",
+          "tone": "muted"
+        },
+        {
+          "icon": "bell",
+          "key": "app",
+          "state": "todo",
+          "state_label": "필요",
+          "summary": "앱 토큰 0개 · 알림 받는 곳 Discord DM · 푸시 꺼짐",
+          "title": "앱과 푸시",
+          "tone": "warn"
+        },
+        {
+          "icon": "spark",
+          "key": "images",
+          "state": "optional",
+          "state_label": "선택",
+          "summary": "OpenAI 키가 없습니다(그림 만들기가 꺼져 있습니다)",
+          "title": "이미지 생성",
+          "tone": "muted"
+        },
+        {
+          "icon": "server",
+          "key": "env",
+          "state": "done",
+          "state_label": "완료",
+          "summary": "점검 5개 모두 정상입니다.",
+          "title": "환경",
+          "tone": "ok"
+        }
+      ]
+    },
+    "signals": {
+      "classify_daily": 0,
+      "classify_used": 0,
+      "consistency": false,
+      "enabled": false,
+      "evening": false,
+      "interests": "",
+      "poll_minutes": 0,
+      "recent": [],
+      "wake_daily": 0,
+      "wake_used": 0,
+      "weekly": false
+    },
+    "site_grants": [],
+    "task_channel": null,
+    "tasks_closed": [],
+    "tasks_open": [],
+    "today": {
+      "cache_tokens": 0,
+      "cost_usd": 0.0,
+      "input_tokens": 0,
+      "model_runs": 0,
+      "output_tokens": 0,
+      "runs": 0
+    },
+    "tz": "Asia/Seoul",
+    "ui": {
+      "browser_watches": 0,
+      "kept_files_total_text": "0 B",
+      "memory_bytes": 0,
+      "security_mode": "standard"
+    },
+    "watch_now_daily": 20,
+    "watches": [],
+    "week": {
+      "cache_tokens": 0,
+      "cost_usd": 0.0,
+      "input_tokens": 0,
+      "model_runs": 0,
+      "output_tokens": 0,
+      "runs": 0
+    },
+    "weekly_cap": null
+  }
+}

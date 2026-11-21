@@ -1,0 +1,13 @@
+{
+  "kind": "standalone",
+  "name": "Lucia",
+  "screen": {
+    "attempts": 3,
+    "error": "qz-site-error",
+    "minutes": 10,
+    "origin": "https://qz-site-origin.example.test",
+    "site": "qz-site-login",
+    "token": "qz-site-token",
+    "type": "site_login_form"
+  }
+}

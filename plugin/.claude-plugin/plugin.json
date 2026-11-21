@@ -1,0 +1,5 @@
+{
+  "name": "lucia",
+  "version": "0.1.0",
+  "description": "Lucia 비서 에이전트용 plugin: 사람이 쓴 스킬, PreToolUse 차단 훅, 데몬 MCP 설정. 사람만 수정하는 보호 영역이다."
+}

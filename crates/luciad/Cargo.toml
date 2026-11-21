@@ -1,0 +1,51 @@
+[package]
+name = "luciad"
+description = "Lucia 호스트 데몬: 스케줄, 상태, 기억, 승인, 알림을 맡고 실행은 Claude Code에 넘긴다"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+lucia-core.workspace = true
+lucia-runner.workspace = true
+lucia-channel.workspace = true
+lucia-precheck.workspace = true
+rmcp = { version = "3.10.0", features = ["server", "macros", "schemars", "transport-streamable-http-server", "client", "transport-streamable-http-client-reqwest"] }
+tokio = { version = "1.54.1", features = ["full"] }
+axum = { version = "0.8.9", features = ["multipart", "ws"] }
+zip = { version = "9.6.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+anyhow = "1.0.104"
+uuid = { version = "1.29.2", features = ["v4"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+schemars = "1.2.3"
+clap = { version = "4.6.7", features = ["derive"] }
+tokio-util = "0.7.20"
+croner = "4.0.3"
+chrono-tz = "0.10.4"
+chrono = { version = "0.4.45", features = ["serde"] }
+lucia-store.workspace = true
+regex = "1.13.1"
+toml = "1.2.1"
+argon2 = "0.6.0"
+sha2 = "0.11.1"
+# HMAC-SHA1(TOTP, 결정 0043)과 RS256 서명(FCM 서비스 계정). rustls가 이미 쓰는 것과 같은 판.
+ring = "0.17.14"
+rustls = { version = "0.23.46", default-features = false, features = ["ring", "std"] }
+sd-notify = "0.5.0"
+base64 = "0.23.1"
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls-no-provider", "json", "form", "query", "charset", "http2", "multipart"] }
+url = "2.5.8"
+percent-encoding = "2.3.2"
+libc = "0.2.191"
+encoding_rs = "0.8.44"
+# 브라우저 CDP(결정 0006): sbx exec 표준 입출력 위의 웹소켓. TLS·TCP 연결 기능은 쓰지 않는다.
+tokio-tungstenite = { version = "0.30.0", default-features = false, features = ["handshake"] }
+futures-util = { version = "0.3.34", default-features = false, features = ["sink", "std"] }
+
+[dev-dependencies]
+tower = { version = "0.5.3", features = ["util"] }

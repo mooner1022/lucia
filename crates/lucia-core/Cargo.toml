@@ -1,0 +1,13 @@
+[package]
+name = "lucia-core"
+description = "플랫폼 중립 타입: 메시지 모델, 작업 상태 머신, 권한 등급"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+chrono = { version = "0.4.45", features = ["serde"] }
+serde = { version = "1.0.229", features = ["derive"] }
+thiserror = "2.0.21"

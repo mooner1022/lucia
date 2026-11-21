@@ -1,0 +1,1524 @@
+{
+  "pages": [
+    {
+      "name": "/",
+      "set": "healthy",
+      "status": 200,
+      "url": "/"
+    },
+    {
+      "name": "/work",
+      "set": "healthy",
+      "status": 200,
+      "url": "/work"
+    },
+    {
+      "name": "/automation",
+      "set": "healthy",
+      "status": 200,
+      "url": "/automation"
+    },
+    {
+      "name": "/activity",
+      "set": "healthy",
+      "status": 200,
+      "url": "/activity"
+    },
+    {
+      "name": "/memory",
+      "set": "healthy",
+      "status": 200,
+      "url": "/memory"
+    },
+    {
+      "name": "/skills",
+      "set": "healthy",
+      "status": 200,
+      "url": "/skills"
+    },
+    {
+      "name": "/character",
+      "set": "healthy",
+      "status": 200,
+      "url": "/character"
+    },
+    {
+      "name": "/expressions",
+      "set": "healthy",
+      "status": 200,
+      "url": "/expressions"
+    },
+    {
+      "name": "/connections",
+      "set": "healthy",
+      "status": 200,
+      "url": "/connections"
+    },
+    {
+      "name": "/browser",
+      "set": "healthy",
+      "status": 200,
+      "url": "/browser"
+    },
+    {
+      "name": "/settings",
+      "set": "healthy",
+      "status": 200,
+      "url": "/settings"
+    },
+    {
+      "name": "/settings/notify",
+      "set": "healthy",
+      "status": 200,
+      "url": "/settings/notify"
+    },
+    {
+      "name": "/settings/work",
+      "set": "healthy",
+      "status": 200,
+      "url": "/settings/work"
+    },
+    {
+      "name": "/system",
+      "set": "healthy",
+      "status": 200,
+      "url": "/system"
+    },
+    {
+      "name": "/start",
+      "set": "healthy",
+      "status": 200,
+      "url": "/start"
+    },
+    {
+      "name": "activity?all",
+      "set": "healthy",
+      "status": 200,
+      "url": "/activity?kind=all"
+    },
+    {
+      "name": "activity?mail",
+      "set": "healthy",
+      "status": 200,
+      "url": "/activity?kind=mail"
+    },
+    {
+      "name": "activity?calendar",
+      "set": "healthy",
+      "status": 200,
+      "url": "/activity?kind=calendar"
+    },
+    {
+      "name": "activity?web",
+      "set": "healthy",
+      "status": 200,
+      "url": "/activity?kind=web"
+    },
+    {
+      "name": "activity?approval",
+      "set": "healthy",
+      "status": 200,
+      "url": "/activity?kind=approval"
+    },
+    {
+      "name": "activity?files",
+      "set": "healthy",
+      "status": 200,
+      "url": "/activity?kind=files"
+    },
+    {
+      "name": "activity?memory",
+      "set": "healthy",
+      "status": 200,
+      "url": "/activity?kind=memory"
+    },
+    {
+      "name": "memory?q",
+      "set": "healthy",
+      "status": 200,
+      "url": "/memory?q=qz"
+    },
+    {
+      "name": "memory/entry",
+      "set": "healthy",
+      "status": 200,
+      "url": "/memory/preferences"
+    },
+    {
+      "name": "memory/missing",
+      "set": "healthy",
+      "status": 404,
+      "url": "/memory/no-such-entry"
+    },
+    {
+      "name": "skills/detail",
+      "set": "healthy",
+      "status": 200,
+      "url": "/skills/qz-sk-pending"
+    },
+    {
+      "name": "character/rev-current",
+      "set": "healthy",
+      "status": 200,
+      "url": "/character/rev/4"
+    },
+    {
+      "name": "character/rev-old",
+      "set": "healthy",
+      "status": 200,
+      "url": "/character/rev/3"
+    },
+    {
+      "name": "character/rev-missing",
+      "set": "healthy",
+      "status": 404,
+      "url": "/character/rev/999"
+    },
+    {
+      "name": "character/load-error",
+      "set": "healthy",
+      "status": 200,
+      "url": "/character?fixture=load-error"
+    },
+    {
+      "name": "handover/off",
+      "set": "healthy",
+      "status": 200,
+      "url": "/browser/handover?fixture=off"
+    },
+    {
+      "name": "handover/idle",
+      "set": "healthy",
+      "status": 200,
+      "url": "/browser/handover"
+    },
+    {
+      "name": "handover/active",
+      "set": "healthy",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one"
+    },
+    {
+      "name": "handover/auto",
+      "set": "healthy",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one&auto=1"
+    },
+    {
+      "name": "/",
+      "set": "fresh",
+      "status": 200,
+      "url": "/"
+    },
+    {
+      "name": "/work",
+      "set": "fresh",
+      "status": 200,
+      "url": "/work"
+    },
+    {
+      "name": "/automation",
+      "set": "fresh",
+      "status": 200,
+      "url": "/automation"
+    },
+    {
+      "name": "/activity",
+      "set": "fresh",
+      "status": 200,
+      "url": "/activity"
+    },
+    {
+      "name": "/memory",
+      "set": "fresh",
+      "status": 200,
+      "url": "/memory"
+    },
+    {
+      "name": "/skills",
+      "set": "fresh",
+      "status": 200,
+      "url": "/skills"
+    },
+    {
+      "name": "/character",
+      "set": "fresh",
+      "status": 200,
+      "url": "/character"
+    },
+    {
+      "name": "/expressions",
+      "set": "fresh",
+      "status": 200,
+      "url": "/expressions"
+    },
+    {
+      "name": "/connections",
+      "set": "fresh",
+      "status": 200,
+      "url": "/connections"
+    },
+    {
+      "name": "/browser",
+      "set": "fresh",
+      "status": 200,
+      "url": "/browser"
+    },
+    {
+      "name": "/settings",
+      "set": "fresh",
+      "status": 200,
+      "url": "/settings"
+    },
+    {
+      "name": "/settings/notify",
+      "set": "fresh",
+      "status": 200,
+      "url": "/settings/notify"
+    },
+    {
+      "name": "/settings/work",
+      "set": "fresh",
+      "status": 200,
+      "url": "/settings/work"
+    },
+    {
+      "name": "/system",
+      "set": "fresh",
+      "status": 200,
+      "url": "/system"
+    },
+    {
+      "name": "/start",
+      "set": "fresh",
+      "status": 200,
+      "url": "/start"
+    },
+    {
+      "name": "activity?all",
+      "set": "fresh",
+      "status": 200,
+      "url": "/activity?kind=all"
+    },
+    {
+      "name": "activity?mail",
+      "set": "fresh",
+      "status": 200,
+      "url": "/activity?kind=mail"
+    },
+    {
+      "name": "activity?calendar",
+      "set": "fresh",
+      "status": 200,
+      "url": "/activity?kind=calendar"
+    },
+    {
+      "name": "activity?web",
+      "set": "fresh",
+      "status": 200,
+      "url": "/activity?kind=web"
+    },
+    {
+      "name": "activity?approval",
+      "set": "fresh",
+      "status": 200,
+      "url": "/activity?kind=approval"
+    },
+    {
+      "name": "activity?files",
+      "set": "fresh",
+      "status": 200,
+      "url": "/activity?kind=files"
+    },
+    {
+      "name": "activity?memory",
+      "set": "fresh",
+      "status": 200,
+      "url": "/activity?kind=memory"
+    },
+    {
+      "name": "memory?q",
+      "set": "fresh",
+      "status": 200,
+      "url": "/memory?q=qz"
+    },
+    {
+      "name": "memory/entry",
+      "set": "fresh",
+      "status": 200,
+      "url": "/memory/qz-mem-me"
+    },
+    {
+      "name": "memory/missing",
+      "set": "fresh",
+      "status": 404,
+      "url": "/memory/no-such-entry"
+    },
+    {
+      "name": "skills/detail",
+      "set": "fresh",
+      "status": 200,
+      "url": "/skills/qz-sk-pending"
+    },
+    {
+      "name": "character/rev-current",
+      "set": "fresh",
+      "status": 200,
+      "url": "/character/rev/4"
+    },
+    {
+      "name": "character/rev-old",
+      "set": "fresh",
+      "status": 200,
+      "url": "/character/rev/3"
+    },
+    {
+      "name": "character/rev-missing",
+      "set": "fresh",
+      "status": 404,
+      "url": "/character/rev/999"
+    },
+    {
+      "name": "character/load-error",
+      "set": "fresh",
+      "status": 200,
+      "url": "/character?fixture=load-error"
+    },
+    {
+      "name": "handover/off",
+      "set": "fresh",
+      "status": 200,
+      "url": "/browser/handover?fixture=off"
+    },
+    {
+      "name": "handover/idle",
+      "set": "fresh",
+      "status": 200,
+      "url": "/browser/handover"
+    },
+    {
+      "name": "handover/active",
+      "set": "fresh",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one"
+    },
+    {
+      "name": "handover/auto",
+      "set": "fresh",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one&auto=1"
+    },
+    {
+      "name": "/",
+      "set": "troubled",
+      "status": 200,
+      "url": "/"
+    },
+    {
+      "name": "/work",
+      "set": "troubled",
+      "status": 200,
+      "url": "/work"
+    },
+    {
+      "name": "/automation",
+      "set": "troubled",
+      "status": 200,
+      "url": "/automation"
+    },
+    {
+      "name": "/activity",
+      "set": "troubled",
+      "status": 200,
+      "url": "/activity"
+    },
+    {
+      "name": "/memory",
+      "set": "troubled",
+      "status": 200,
+      "url": "/memory"
+    },
+    {
+      "name": "/skills",
+      "set": "troubled",
+      "status": 200,
+      "url": "/skills"
+    },
+    {
+      "name": "/character",
+      "set": "troubled",
+      "status": 200,
+      "url": "/character"
+    },
+    {
+      "name": "/expressions",
+      "set": "troubled",
+      "status": 200,
+      "url": "/expressions"
+    },
+    {
+      "name": "/connections",
+      "set": "troubled",
+      "status": 200,
+      "url": "/connections"
+    },
+    {
+      "name": "/browser",
+      "set": "troubled",
+      "status": 200,
+      "url": "/browser"
+    },
+    {
+      "name": "/settings",
+      "set": "troubled",
+      "status": 200,
+      "url": "/settings"
+    },
+    {
+      "name": "/settings/notify",
+      "set": "troubled",
+      "status": 200,
+      "url": "/settings/notify"
+    },
+    {
+      "name": "/settings/work",
+      "set": "troubled",
+      "status": 200,
+      "url": "/settings/work"
+    },
+    {
+      "name": "/system",
+      "set": "troubled",
+      "status": 200,
+      "url": "/system"
+    },
+    {
+      "name": "/start",
+      "set": "troubled",
+      "status": 200,
+      "url": "/start"
+    },
+    {
+      "name": "activity?all",
+      "set": "troubled",
+      "status": 200,
+      "url": "/activity?kind=all"
+    },
+    {
+      "name": "activity?mail",
+      "set": "troubled",
+      "status": 200,
+      "url": "/activity?kind=mail"
+    },
+    {
+      "name": "activity?calendar",
+      "set": "troubled",
+      "status": 200,
+      "url": "/activity?kind=calendar"
+    },
+    {
+      "name": "activity?web",
+      "set": "troubled",
+      "status": 200,
+      "url": "/activity?kind=web"
+    },
+    {
+      "name": "activity?approval",
+      "set": "troubled",
+      "status": 200,
+      "url": "/activity?kind=approval"
+    },
+    {
+      "name": "activity?files",
+      "set": "troubled",
+      "status": 200,
+      "url": "/activity?kind=files"
+    },
+    {
+      "name": "activity?memory",
+      "set": "troubled",
+      "status": 200,
+      "url": "/activity?kind=memory"
+    },
+    {
+      "name": "memory?q",
+      "set": "troubled",
+      "status": 200,
+      "url": "/memory?q=qz"
+    },
+    {
+      "name": "memory/entry",
+      "set": "troubled",
+      "status": 200,
+      "url": "/memory/preferences"
+    },
+    {
+      "name": "memory/missing",
+      "set": "troubled",
+      "status": 404,
+      "url": "/memory/no-such-entry"
+    },
+    {
+      "name": "skills/detail",
+      "set": "troubled",
+      "status": 200,
+      "url": "/skills/qz-sk-pending"
+    },
+    {
+      "name": "character/rev-current",
+      "set": "troubled",
+      "status": 200,
+      "url": "/character/rev/4"
+    },
+    {
+      "name": "character/rev-old",
+      "set": "troubled",
+      "status": 200,
+      "url": "/character/rev/3"
+    },
+    {
+      "name": "character/rev-missing",
+      "set": "troubled",
+      "status": 404,
+      "url": "/character/rev/999"
+    },
+    {
+      "name": "character/load-error",
+      "set": "troubled",
+      "status": 200,
+      "url": "/character?fixture=load-error"
+    },
+    {
+      "name": "handover/off",
+      "set": "troubled",
+      "status": 200,
+      "url": "/browser/handover?fixture=off"
+    },
+    {
+      "name": "handover/idle",
+      "set": "troubled",
+      "status": 200,
+      "url": "/browser/handover"
+    },
+    {
+      "name": "handover/active",
+      "set": "troubled",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one"
+    },
+    {
+      "name": "handover/auto",
+      "set": "troubled",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one&auto=1"
+    },
+    {
+      "name": "/",
+      "set": "full",
+      "status": 200,
+      "url": "/"
+    },
+    {
+      "name": "/work",
+      "set": "full",
+      "status": 200,
+      "url": "/work"
+    },
+    {
+      "name": "/automation",
+      "set": "full",
+      "status": 200,
+      "url": "/automation"
+    },
+    {
+      "name": "/activity",
+      "set": "full",
+      "status": 200,
+      "url": "/activity"
+    },
+    {
+      "name": "/memory",
+      "set": "full",
+      "status": 200,
+      "url": "/memory"
+    },
+    {
+      "name": "/skills",
+      "set": "full",
+      "status": 200,
+      "url": "/skills"
+    },
+    {
+      "name": "/character",
+      "set": "full",
+      "status": 200,
+      "url": "/character"
+    },
+    {
+      "name": "/expressions",
+      "set": "full",
+      "status": 200,
+      "url": "/expressions"
+    },
+    {
+      "name": "/connections",
+      "set": "full",
+      "status": 200,
+      "url": "/connections"
+    },
+    {
+      "name": "/browser",
+      "set": "full",
+      "status": 200,
+      "url": "/browser"
+    },
+    {
+      "name": "/settings",
+      "set": "full",
+      "status": 200,
+      "url": "/settings"
+    },
+    {
+      "name": "/settings/notify",
+      "set": "full",
+      "status": 200,
+      "url": "/settings/notify"
+    },
+    {
+      "name": "/settings/work",
+      "set": "full",
+      "status": 200,
+      "url": "/settings/work"
+    },
+    {
+      "name": "/system",
+      "set": "full",
+      "status": 200,
+      "url": "/system"
+    },
+    {
+      "name": "/start",
+      "set": "full",
+      "status": 200,
+      "url": "/start"
+    },
+    {
+      "name": "activity?all",
+      "set": "full",
+      "status": 200,
+      "url": "/activity?kind=all"
+    },
+    {
+      "name": "activity?mail",
+      "set": "full",
+      "status": 200,
+      "url": "/activity?kind=mail"
+    },
+    {
+      "name": "activity?calendar",
+      "set": "full",
+      "status": 200,
+      "url": "/activity?kind=calendar"
+    },
+    {
+      "name": "activity?web",
+      "set": "full",
+      "status": 200,
+      "url": "/activity?kind=web"
+    },
+    {
+      "name": "activity?approval",
+      "set": "full",
+      "status": 200,
+      "url": "/activity?kind=approval"
+    },
+    {
+      "name": "activity?files",
+      "set": "full",
+      "status": 200,
+      "url": "/activity?kind=files"
+    },
+    {
+      "name": "activity?memory",
+      "set": "full",
+      "status": 200,
+      "url": "/activity?kind=memory"
+    },
+    {
+      "name": "memory?q",
+      "set": "full",
+      "status": 200,
+      "url": "/memory?q=qz"
+    },
+    {
+      "name": "memory/entry",
+      "set": "full",
+      "status": 200,
+      "url": "/memory/qz-mem-me"
+    },
+    {
+      "name": "memory/missing",
+      "set": "full",
+      "status": 404,
+      "url": "/memory/no-such-entry"
+    },
+    {
+      "name": "skills/detail",
+      "set": "full",
+      "status": 200,
+      "url": "/skills/qz-sk-pending"
+    },
+    {
+      "name": "character/rev-current",
+      "set": "full",
+      "status": 200,
+      "url": "/character/rev/4"
+    },
+    {
+      "name": "character/rev-old",
+      "set": "full",
+      "status": 200,
+      "url": "/character/rev/3"
+    },
+    {
+      "name": "character/rev-missing",
+      "set": "full",
+      "status": 404,
+      "url": "/character/rev/999"
+    },
+    {
+      "name": "character/load-error",
+      "set": "full",
+      "status": 200,
+      "url": "/character?fixture=load-error"
+    },
+    {
+      "name": "handover/off",
+      "set": "full",
+      "status": 200,
+      "url": "/browser/handover?fixture=off"
+    },
+    {
+      "name": "handover/idle",
+      "set": "full",
+      "status": 200,
+      "url": "/browser/handover"
+    },
+    {
+      "name": "handover/active",
+      "set": "full",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one"
+    },
+    {
+      "name": "handover/auto",
+      "set": "full",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one&auto=1"
+    },
+    {
+      "name": "/",
+      "set": "alt",
+      "status": 200,
+      "url": "/"
+    },
+    {
+      "name": "/work",
+      "set": "alt",
+      "status": 200,
+      "url": "/work"
+    },
+    {
+      "name": "/automation",
+      "set": "alt",
+      "status": 200,
+      "url": "/automation"
+    },
+    {
+      "name": "/activity",
+      "set": "alt",
+      "status": 200,
+      "url": "/activity"
+    },
+    {
+      "name": "/memory",
+      "set": "alt",
+      "status": 200,
+      "url": "/memory"
+    },
+    {
+      "name": "/skills",
+      "set": "alt",
+      "status": 200,
+      "url": "/skills"
+    },
+    {
+      "name": "/character",
+      "set": "alt",
+      "status": 200,
+      "url": "/character"
+    },
+    {
+      "name": "/expressions",
+      "set": "alt",
+      "status": 200,
+      "url": "/expressions"
+    },
+    {
+      "name": "/connections",
+      "set": "alt",
+      "status": 200,
+      "url": "/connections"
+    },
+    {
+      "name": "/browser",
+      "set": "alt",
+      "status": 200,
+      "url": "/browser"
+    },
+    {
+      "name": "/settings",
+      "set": "alt",
+      "status": 200,
+      "url": "/settings"
+    },
+    {
+      "name": "/settings/notify",
+      "set": "alt",
+      "status": 200,
+      "url": "/settings/notify"
+    },
+    {
+      "name": "/settings/work",
+      "set": "alt",
+      "status": 200,
+      "url": "/settings/work"
+    },
+    {
+      "name": "/system",
+      "set": "alt",
+      "status": 200,
+      "url": "/system"
+    },
+    {
+      "name": "/start",
+      "set": "alt",
+      "status": 200,
+      "url": "/start"
+    },
+    {
+      "name": "activity?all",
+      "set": "alt",
+      "status": 200,
+      "url": "/activity?kind=all"
+    },
+    {
+      "name": "activity?mail",
+      "set": "alt",
+      "status": 200,
+      "url": "/activity?kind=mail"
+    },
+    {
+      "name": "activity?calendar",
+      "set": "alt",
+      "status": 200,
+      "url": "/activity?kind=calendar"
+    },
+    {
+      "name": "activity?web",
+      "set": "alt",
+      "status": 200,
+      "url": "/activity?kind=web"
+    },
+    {
+      "name": "activity?approval",
+      "set": "alt",
+      "status": 200,
+      "url": "/activity?kind=approval"
+    },
+    {
+      "name": "activity?files",
+      "set": "alt",
+      "status": 200,
+      "url": "/activity?kind=files"
+    },
+    {
+      "name": "activity?memory",
+      "set": "alt",
+      "status": 200,
+      "url": "/activity?kind=memory"
+    },
+    {
+      "name": "memory?q",
+      "set": "alt",
+      "status": 200,
+      "url": "/memory?q=qz"
+    },
+    {
+      "name": "memory/entry",
+      "set": "alt",
+      "status": 200,
+      "url": "/memory/qz-mem-me"
+    },
+    {
+      "name": "memory/missing",
+      "set": "alt",
+      "status": 404,
+      "url": "/memory/no-such-entry"
+    },
+    {
+      "name": "skills/detail",
+      "set": "alt",
+      "status": 200,
+      "url": "/skills/qz-sk-pending"
+    },
+    {
+      "name": "character/rev-current",
+      "set": "alt",
+      "status": 200,
+      "url": "/character/rev/4"
+    },
+    {
+      "name": "character/rev-old",
+      "set": "alt",
+      "status": 200,
+      "url": "/character/rev/3"
+    },
+    {
+      "name": "character/rev-missing",
+      "set": "alt",
+      "status": 404,
+      "url": "/character/rev/999"
+    },
+    {
+      "name": "character/load-error",
+      "set": "alt",
+      "status": 200,
+      "url": "/character?fixture=load-error"
+    },
+    {
+      "name": "handover/off",
+      "set": "alt",
+      "status": 200,
+      "url": "/browser/handover?fixture=off"
+    },
+    {
+      "name": "handover/idle",
+      "set": "alt",
+      "status": 200,
+      "url": "/browser/handover"
+    },
+    {
+      "name": "handover/active",
+      "set": "alt",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one"
+    },
+    {
+      "name": "handover/auto",
+      "set": "alt",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one&auto=1"
+    },
+    {
+      "name": "/",
+      "set": "open",
+      "status": 200,
+      "url": "/"
+    },
+    {
+      "name": "/work",
+      "set": "open",
+      "status": 200,
+      "url": "/work"
+    },
+    {
+      "name": "/automation",
+      "set": "open",
+      "status": 200,
+      "url": "/automation"
+    },
+    {
+      "name": "/activity",
+      "set": "open",
+      "status": 200,
+      "url": "/activity"
+    },
+    {
+      "name": "/memory",
+      "set": "open",
+      "status": 200,
+      "url": "/memory"
+    },
+    {
+      "name": "/skills",
+      "set": "open",
+      "status": 200,
+      "url": "/skills"
+    },
+    {
+      "name": "/character",
+      "set": "open",
+      "status": 200,
+      "url": "/character"
+    },
+    {
+      "name": "/expressions",
+      "set": "open",
+      "status": 200,
+      "url": "/expressions"
+    },
+    {
+      "name": "/connections",
+      "set": "open",
+      "status": 200,
+      "url": "/connections"
+    },
+    {
+      "name": "/browser",
+      "set": "open",
+      "status": 200,
+      "url": "/browser"
+    },
+    {
+      "name": "/settings",
+      "set": "open",
+      "status": 200,
+      "url": "/settings"
+    },
+    {
+      "name": "/settings/notify",
+      "set": "open",
+      "status": 200,
+      "url": "/settings/notify"
+    },
+    {
+      "name": "/settings/work",
+      "set": "open",
+      "status": 200,
+      "url": "/settings/work"
+    },
+    {
+      "name": "/system",
+      "set": "open",
+      "status": 200,
+      "url": "/system"
+    },
+    {
+      "name": "/start",
+      "set": "open",
+      "status": 200,
+      "url": "/start"
+    },
+    {
+      "name": "activity?all",
+      "set": "open",
+      "status": 200,
+      "url": "/activity?kind=all"
+    },
+    {
+      "name": "activity?mail",
+      "set": "open",
+      "status": 200,
+      "url": "/activity?kind=mail"
+    },
+    {
+      "name": "activity?calendar",
+      "set": "open",
+      "status": 200,
+      "url": "/activity?kind=calendar"
+    },
+    {
+      "name": "activity?web",
+      "set": "open",
+      "status": 200,
+      "url": "/activity?kind=web"
+    },
+    {
+      "name": "activity?approval",
+      "set": "open",
+      "status": 200,
+      "url": "/activity?kind=approval"
+    },
+    {
+      "name": "activity?files",
+      "set": "open",
+      "status": 200,
+      "url": "/activity?kind=files"
+    },
+    {
+      "name": "activity?memory",
+      "set": "open",
+      "status": 200,
+      "url": "/activity?kind=memory"
+    },
+    {
+      "name": "memory?q",
+      "set": "open",
+      "status": 200,
+      "url": "/memory?q=qz"
+    },
+    {
+      "name": "memory/entry",
+      "set": "open",
+      "status": 200,
+      "url": "/memory/qz-mem-me"
+    },
+    {
+      "name": "memory/missing",
+      "set": "open",
+      "status": 404,
+      "url": "/memory/no-such-entry"
+    },
+    {
+      "name": "skills/detail",
+      "set": "open",
+      "status": 200,
+      "url": "/skills/qz-sk-pending"
+    },
+    {
+      "name": "character/rev-current",
+      "set": "open",
+      "status": 200,
+      "url": "/character/rev/4"
+    },
+    {
+      "name": "character/rev-old",
+      "set": "open",
+      "status": 200,
+      "url": "/character/rev/3"
+    },
+    {
+      "name": "character/rev-missing",
+      "set": "open",
+      "status": 404,
+      "url": "/character/rev/999"
+    },
+    {
+      "name": "character/load-error",
+      "set": "open",
+      "status": 200,
+      "url": "/character?fixture=load-error"
+    },
+    {
+      "name": "handover/off",
+      "set": "open",
+      "status": 200,
+      "url": "/browser/handover?fixture=off"
+    },
+    {
+      "name": "handover/idle",
+      "set": "open",
+      "status": 200,
+      "url": "/browser/handover"
+    },
+    {
+      "name": "handover/active",
+      "set": "open",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one"
+    },
+    {
+      "name": "handover/auto",
+      "set": "open",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one&auto=1"
+    },
+    {
+      "name": "/",
+      "set": "stress",
+      "status": 200,
+      "url": "/"
+    },
+    {
+      "name": "/work",
+      "set": "stress",
+      "status": 200,
+      "url": "/work"
+    },
+    {
+      "name": "/automation",
+      "set": "stress",
+      "status": 200,
+      "url": "/automation"
+    },
+    {
+      "name": "/activity",
+      "set": "stress",
+      "status": 200,
+      "url": "/activity"
+    },
+    {
+      "name": "/memory",
+      "set": "stress",
+      "status": 200,
+      "url": "/memory"
+    },
+    {
+      "name": "/skills",
+      "set": "stress",
+      "status": 200,
+      "url": "/skills"
+    },
+    {
+      "name": "/character",
+      "set": "stress",
+      "status": 200,
+      "url": "/character"
+    },
+    {
+      "name": "/expressions",
+      "set": "stress",
+      "status": 200,
+      "url": "/expressions"
+    },
+    {
+      "name": "/connections",
+      "set": "stress",
+      "status": 200,
+      "url": "/connections"
+    },
+    {
+      "name": "/browser",
+      "set": "stress",
+      "status": 200,
+      "url": "/browser"
+    },
+    {
+      "name": "/settings",
+      "set": "stress",
+      "status": 200,
+      "url": "/settings"
+    },
+    {
+      "name": "/settings/notify",
+      "set": "stress",
+      "status": 200,
+      "url": "/settings/notify"
+    },
+    {
+      "name": "/settings/work",
+      "set": "stress",
+      "status": 200,
+      "url": "/settings/work"
+    },
+    {
+      "name": "/system",
+      "set": "stress",
+      "status": 200,
+      "url": "/system"
+    },
+    {
+      "name": "/start",
+      "set": "stress",
+      "status": 200,
+      "url": "/start"
+    },
+    {
+      "name": "activity?all",
+      "set": "stress",
+      "status": 200,
+      "url": "/activity?kind=all"
+    },
+    {
+      "name": "activity?mail",
+      "set": "stress",
+      "status": 200,
+      "url": "/activity?kind=mail"
+    },
+    {
+      "name": "activity?calendar",
+      "set": "stress",
+      "status": 200,
+      "url": "/activity?kind=calendar"
+    },
+    {
+      "name": "activity?web",
+      "set": "stress",
+      "status": 200,
+      "url": "/activity?kind=web"
+    },
+    {
+      "name": "activity?approval",
+      "set": "stress",
+      "status": 200,
+      "url": "/activity?kind=approval"
+    },
+    {
+      "name": "activity?files",
+      "set": "stress",
+      "status": 200,
+      "url": "/activity?kind=files"
+    },
+    {
+      "name": "activity?memory",
+      "set": "stress",
+      "status": 200,
+      "url": "/activity?kind=memory"
+    },
+    {
+      "name": "memory?q",
+      "set": "stress",
+      "status": 200,
+      "url": "/memory?q=qz"
+    },
+    {
+      "name": "memory/entry",
+      "set": "stress",
+      "status": 200,
+      "url": "/memory/qz-mem-me"
+    },
+    {
+      "name": "memory/missing",
+      "set": "stress",
+      "status": 404,
+      "url": "/memory/no-such-entry"
+    },
+    {
+      "name": "skills/detail",
+      "set": "stress",
+      "status": 200,
+      "url": "/skills/qz-sk-pending"
+    },
+    {
+      "name": "character/rev-current",
+      "set": "stress",
+      "status": 200,
+      "url": "/character/rev/4"
+    },
+    {
+      "name": "character/rev-old",
+      "set": "stress",
+      "status": 200,
+      "url": "/character/rev/3"
+    },
+    {
+      "name": "character/rev-missing",
+      "set": "stress",
+      "status": 404,
+      "url": "/character/rev/999"
+    },
+    {
+      "name": "character/load-error",
+      "set": "stress",
+      "status": 200,
+      "url": "/character?fixture=load-error"
+    },
+    {
+      "name": "handover/off",
+      "set": "stress",
+      "status": 200,
+      "url": "/browser/handover?fixture=off"
+    },
+    {
+      "name": "handover/idle",
+      "set": "stress",
+      "status": 200,
+      "url": "/browser/handover"
+    },
+    {
+      "name": "handover/active",
+      "set": "stress",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one"
+    },
+    {
+      "name": "handover/auto",
+      "set": "stress",
+      "status": 200,
+      "url": "/browser/handover?tab=qz-tab-one&auto=1"
+    }
+  ],
+  "standalone": [
+    {
+      "file": "standalone/login.json",
+      "name": "login",
+      "url": "/login?fixture=login"
+    },
+    {
+      "file": "standalone/login-plain.json",
+      "name": "login/plain",
+      "url": "/login?fixture=login-plain"
+    },
+    {
+      "file": "standalone/login-external.json",
+      "name": "login/external",
+      "url": "/login?fixture=login-external"
+    },
+    {
+      "file": "standalone/no-password.json",
+      "name": "no-password",
+      "url": "/login?fixture=no-password"
+    },
+    {
+      "file": "standalone/setup.json",
+      "name": "setup",
+      "url": "/login?fixture=setup"
+    },
+    {
+      "file": "standalone/setup-invalid.json",
+      "name": "setup/invalid",
+      "url": "/login?fixture=setup-invalid"
+    },
+    {
+      "file": "standalone/google-returned-ok.json",
+      "name": "google/returned-ok",
+      "url": "/login?fixture=google-returned-ok"
+    },
+    {
+      "file": "standalone/google-returned-bad.json",
+      "name": "google/returned-bad",
+      "url": "/login?fixture=google-returned-bad"
+    },
+    {
+      "file": "standalone/site-login-form.json",
+      "name": "site-login/form",
+      "url": "/login?fixture=site-login-form"
+    },
+    {
+      "file": "standalone/site-login-busy.json",
+      "name": "site-login/busy",
+      "url": "/login?fixture=site-login-busy"
+    },
+    {
+      "file": "standalone/site-login-done.json",
+      "name": "site-login/done",
+      "url": "/login?fixture=site-login-done"
+    },
+    {
+      "file": "standalone/site-login-pending-code.json",
+      "name": "site-login/pending-code",
+      "url": "/login?fixture=site-login-pending-code"
+    },
+    {
+      "file": "standalone/site-login-pending-handover.json",
+      "name": "site-login/pending-handover",
+      "url": "/login?fixture=site-login-pending-handover"
+    },
+    {
+      "file": "standalone/site-login-pending-plain.json",
+      "name": "site-login/pending-plain",
+      "url": "/login?fixture=site-login-pending-plain"
+    },
+    {
+      "file": "standalone/site-login-code.json",
+      "name": "site-login/code",
+      "url": "/login?fixture=site-login-code"
+    },
+    {
+      "file": "standalone/site-login-failed.json",
+      "name": "site-login/failed",
+      "url": "/login?fixture=site-login-failed"
+    },
+    {
+      "file": "standalone/site-login-invalid.json",
+      "name": "site-login/invalid",
+      "url": "/login?fixture=site-login-invalid"
+    },
+    {
+      "file": "standalone/not-found.json",
+      "name": "not-found",
+      "url": "/login?fixture=not-found"
+    }
+  ]
+}
