@@ -26,7 +26,7 @@ curl -fsSL https://github.com/mooner1022/lucia/releases/latest/download/install.
 | `kvm` 그룹에 든 사용자 | sbx가 VM을 만든다 | `id -nG`에 `kvm` |
 | Claude 구독(Pro·Max) | Lucia의 실행 엔진이 Claude Code다 | |
 | `python3` | 한 줄 설치(받은 파일 맞추기), `setup.sh`·`uninstall.sh`(설정 파일 읽고 쓰기), 브라우저·코드 실행 샌드박스를 만드는 스크립트, sbx 유닛(`lucia-sbx.service`)의 확인 | `python3 --version` |
-| `systemd-creds`(systemd 250 이상) | 자격 증명 암호화 | `systemd-creds --version` |
+| `systemd-creds --user`(**systemd 256 이상**) | 자격 증명 암호화. Ubuntu 24.04(systemd 255)에서는 되지 않는다. 26.04에서 확인했다 | `systemctl --version` |
 | 메모리 | 상주 4 GB, 브라우저 2 GB(선택), 스크립트 1 GB(선택)가 기본 상한이다 | |
 
 한 줄 설치 스크립트는 시작할 때 `curl`, `tar`, `sha256sum`, `python3`가 있는지 본다. 없으면 `sudo apt install <도구>`를 알려 주고 멈춘다(이 단계에서는 대신 설치하지 않는다).
@@ -43,7 +43,7 @@ Node를 시스템에 깔지 않으려면 공식 배포판을 `~/.local/opt/node`
 
 ### 준비물을 대신 설치해 주는 범위
 
-`deploy/setup.sh`는 빠진 준비물 가운데 sudo가 필요한 것을 **Ubuntu 24.04 이상에서만**(`sudo`와 `apt-get`이 있을 때) 대신 설치해 준다. 실행할 명령을 그대로 보여 주고, 하나씩 묻고(기본은 "아니오"), 승낙한 것만 한다. sudo 비밀번호를 물을 수 있다. `--check`에서는 아무것도 묻지도 하지도 않는다.
+`deploy/setup.sh`는 빠진 준비물 가운데 sudo가 필요한 것을 **Ubuntu 24.04 이상에서만**(`sudo`와 `apt-get`이 있을 때) 대신 설치해 준다. 실행할 명령을 그대로 보여 주고, 하나씩 묻고(기본은 "아니오"), 승낙한 것만 한다. sudo 비밀번호를 물을 수 있다. `--check`에서는 아무것도 묻지도 하지도 않는다. systemd가 256보다 낮은 것은 대신 채울 수 없다(더 새 배포판이 필요하다).
 
 | 빠진 것 | 하는 명령 |
 |---|---|
@@ -88,7 +88,7 @@ x86-64 리눅스에서, root가 아닌 사용자로 돌린다. 하는 일:
 
 ### 레포에서 빌드하기
 
-개발하거나, x86-64가 아니거나, Ubuntu 24.04보다 오래된 배포판일 때 쓴다(받는 바이너리는 24.04에서 빌드한다). Arm에서는 시험하지 못했다.
+개발하거나 x86-64가 아닐 때 쓴다(받는 바이너리는 Ubuntu 24.04의 glibc로 빌드해 그보다 새 배포판에서 돈다). 어느 길이든 systemd 256 이상이 필요하다. Arm에서는 시험하지 못했다.
 
 ```sh
 git clone https://github.com/mooner1022/lucia.git ~/lucia

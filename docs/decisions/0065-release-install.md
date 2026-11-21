@@ -34,7 +34,7 @@
 - `package.sh`는 x86-64에서만 돈다.
 - 릴리스 워크플로(`.github/workflows/release.yml`): `v*` 태그를 올리면 Ubuntu 24.04 러너에서 관리 화면 빌드와 시험(`deploy/build-ui.sh`) → `cargo test --workspace` → `deploy/package.sh "$GITHUB_REF_NAME"` → `gh release create`로 묶음, 체크섬, `install.sh`를 올린다(릴리스 노트는 자동 생성). Rust는 안정판, Node.js는 LTS다.
   - **태그는 Cargo 작업 공간의 버전과 같아야 한다**(`v0.1.0` ↔ `version = "0.1.0"`). 다르면 `package.sh`가 멈춘다.
-  - Ubuntu 24.04에서 빌드하는 까닭: Docker Sandboxes가 지원하는 가장 오래된 Ubuntu가 24.04라서(Docker 설치 문서), 여기서 만든 바이너리의 glibc가 그보다 새 배포판에서도 돈다.
+  - Ubuntu 24.04에서 빌드하는 까닭: 여기서 만든 바이너리의 glibc가 그보다 새 배포판에서 모두 돈다. Lucia가 실제로 도는 곳은 systemd 256 이상이라 24.04보다 새 배포판이고, 이 러너에서는 실제 자격 증명을 쓰는 시험 셋이 스스로 건너뛴다(쓸 수 있는지를 먼저 본다).
 
 ### 한 줄 설치(`install.sh`)
 
@@ -89,7 +89,7 @@ curl -fsSL https://github.com/mooner1022/lucia/releases/latest/download/install.
 
 ### 준비물을 허락을 받고 채운다(`deploy/setup.sh`)
 
-- **Ubuntu 24.04 이상에서만, `sudo`와 `apt-get`이 있을 때만** 한다(Docker가 sbx를 지원하는 곳). 실행할 명령을 그대로 보여 주고 묻는다. 기본은 "아니오"이고, 하나씩 묻는다. `--check`에서는 묻지도 하지도 않는다(진행하면 물어본다는 안내만 보인다).
+- **Ubuntu 24.04 이상에서만, `sudo`와 `apt-get`이 있을 때만** 한다(Docker가 sbx를 지원하는 곳). 실행할 명령을 그대로 보여 주고 묻는다. 기본은 "아니오"이고, 하나씩 묻는다. `--check`에서는 묻지도 하지도 않는다(진행하면 물어본다는 안내만 보인다). (sbx를 대신 설치하는 조건이 24.04 이상이라는 뜻이다. Lucia 자체는 systemd 256 이상이 필요해 24.04에서는 준비물 확인에서 멈춘다.)
 
   | 빠진 것 | 하는 명령 |
   |---|---|
@@ -107,7 +107,7 @@ curl -fsSL https://github.com/mooner1022/lucia/releases/latest/download/install.
 받아 쓰는 설치로도 없어지지 않는 것이다.
 
 - KVM이 되는 x86-64 리눅스(`/dev/kvm`).
-- systemd(사용자 서비스, `systemd-creds` 250 이상).
+- systemd **256 이상**(사용자 서비스, 자격 증명 암호화의 `systemd-creds --user`가 256부터 있다). Ubuntu 24.04는 255라 되지 않는다. 확인한 곳은 Ubuntu 26.04(systemd 259)다. `setup.sh`는 명령이 있는지가 아니라 실제로 암호화가 되는지를 본다.
 - `sbx`: Docker의 제품이라 이 묶음에 넣어 다시 배포할 수 없다. Ubuntu 24.04 이상에서는 위처럼 설치를 대신 해 준다.
 - Docker 계정 로그인(`sbx login`)과 Claude 구독 로그인. 사람이 브라우저에서 해야 한다.
 - **`python3`**: 처음에는 없앨 수 있다고 말했으나 없애지 못했다. 한 줄 설치 스크립트(받은 파일 맞추기), `setup.sh`·`uninstall.sh`(설정 파일 읽고 쓰기), 브라우저·코드 실행 샌드박스를 만드는 스크립트, sbx 유닛(`lucia-sbx.service`)의 확인이 쓴다.

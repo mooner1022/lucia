@@ -215,13 +215,22 @@ check_requirements() {
     fi
   fi
 
-  for tool in python3 systemd-creds systemctl; do
+  for tool in python3 systemctl; do
     if have "$tool"; then ok "$tool"; else
       bad "$tool 이(가) 없습니다."
       [[ $tool == python3 ]] && NEED_APT+=(python3)
       missing=1
     fi
   done
+  # 토큰·키를 암호화해 두는 데 `systemd-creds --user`를 쓴다. 이 옵션은 systemd 256부터 있어서(Ubuntu 24.04는 255),
+  # 명령이 있는지가 아니라 실제로 되는지를 본다(아무것도 남기지 않는다).
+  if printf probe | systemd-creds encrypt --user --name=lucia-probe - - >/dev/null 2>&1; then
+    ok "systemd-creds --user (systemd $(systemctl --version 2>/dev/null | awk 'NR==1 {print $2}'))"
+  else
+    bad "systemd-creds --user를 쓸 수 없습니다: systemd 256 이상이 필요합니다(지금 $(systemctl --version 2>/dev/null | awk 'NR==1 {print $2}')). Ubuntu 24.04(systemd 255)에서는 되지 않습니다."
+    note "더 새 배포판이 필요합니다(Ubuntu 26.04에서 확인했습니다). 이것은 스크립트가 대신 채울 수 없습니다."
+    missing=1
+  fi
   if have systemctl && ! systemctl --user show-environment >/dev/null 2>&1; then
     bad "systemd 사용자 세션에 닿지 못합니다(SSH로 로그인한 그 사용자의 셸에서 돌리세요)."
     missing=1

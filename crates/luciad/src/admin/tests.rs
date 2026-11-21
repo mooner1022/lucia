@@ -2213,12 +2213,8 @@ async fn outside_requests_need_the_public_host_and_a_second_factor() {
 
 #[tokio::test]
 async fn second_factor_is_set_up_at_home_and_used_outside() {
-    if std::process::Command::new("systemd-creds")
-        .arg("--version")
-        .output()
-        .is_err()
-    {
-        eprintln!("systemd-creds 없음, 건너뜀");
+    if !crate::credentials::user_credentials_work() {
+        eprintln!("systemd-creds --user를 쓸 수 없음(systemd 256 미만이거나 없음), 건너뜀");
         return;
     }
     let f = fixture_with(PUBLIC).await;

@@ -1777,12 +1777,8 @@ mod tests {
     /// 실제 비밀 저장소(systemd-creds)로 사이트 자격 증명 이름과 앞뒤 공백 있는 비밀번호가 그대로 오간다.
     #[tokio::test]
     async fn real_credentials_keep_the_password_exactly() {
-        if std::process::Command::new("systemd-creds")
-            .arg("--version")
-            .output()
-            .is_err()
-        {
-            eprintln!("systemd-creds 없음, 건너뜀");
+        if !crate::credentials::user_credentials_work() {
+            eprintln!("systemd-creds --user를 쓸 수 없음(systemd 256 미만이거나 없음), 건너뜀");
             return;
         }
         let dir = std::env::temp_dir().join(format!("lucia-site-creds-{}", Uuid::new_v4()));

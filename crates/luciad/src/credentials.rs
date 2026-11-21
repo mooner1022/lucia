@@ -146,6 +146,27 @@ fn set_mode(path: &Path, mode: u32) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// 시험용: 이 기계에서 `systemd-creds encrypt --user`가 실제로 되는가. `--user`는 systemd 256부터 있어서,
+/// 그보다 오래된 곳(예: Ubuntu 24.04의 255)이나 사용자 세션이 없는 곳에서는 실제 자격 증명을 쓰는 시험을 건너뛴다.
+#[cfg(test)]
+pub(crate) fn user_credentials_work() -> bool {
+    use std::io::Write as _;
+    use std::process::{Command, Stdio};
+    let Ok(mut child) = Command::new("systemd-creds")
+        .args(["encrypt", "--user", "--name=lucia-probe", "-", "-"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+    else {
+        return false;
+    };
+    if let Some(mut stdin) = child.stdin.take() {
+        let _ = stdin.write_all(b"probe");
+    }
+    child.wait().is_ok_and(|s| s.success())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -153,12 +174,8 @@ mod tests {
     /// 실제 systemd-creds --user로 쓰고 읽는다(이 호스트에서 sudo 없이 동작함을 확인했다).
     #[tokio::test]
     async fn write_read_roundtrip_registers_mask() {
-        if std::process::Command::new("systemd-creds")
-            .arg("--version")
-            .output()
-            .is_err()
-        {
-            eprintln!("systemd-creds 없음, 건너뜀");
+        if !crate::credentials::user_credentials_work() {
+            eprintln!("systemd-creds --user를 쓸 수 없음(systemd 256 미만이거나 없음), 건너뜀");
             return;
         }
         let dir = std::env::temp_dir().join(format!("lucia-creds-{}", uuid::Uuid::new_v4()));

@@ -48,7 +48,7 @@ curl -fsSL https://github.com/mooner1022/lucia/releases/latest/download/install.
 
 빌드해 둔 릴리스를 받아 체크섬을 맞춰 보고 `~/.local/lib/lucia/release`에 푼 뒤, 처음이면 `deploy/setup.sh`가 묻고 답하며 끝까지 데려간다: 준비물 확인 → sbx·Claude 로그인 → 설정 파일 → Lucia가 사는 샌드박스 → 설치 → 관리 페이지 비밀번호 링크. Rust와 Node.js는 필요 없다. 이미 된 단계는 건너뛰므로 중간에 멈췄다가 다시 돌려도 된다. 이미 설치돼 있으면 같은 명령이 업데이트다(저장소를 백업하고 바이너리를 바꿔 재시작한다). 지금 상태만 보려면 `~/.local/lib/lucia/release/deploy/setup.sh --check`.
 
-준비물: KVM이 되는 리눅스 서버(systemd), Docker 계정, Claude 구독. [Docker Sandboxes(`sbx`)](https://docs.docker.com/ai/sandboxes/)는 Ubuntu 24.04 이상이면 `setup.sh`가 명령을 보여 주고 허락을 받은 뒤 설치해 준다. 다른 배포판에서는 명령만 알려 준다.
+준비물: KVM이 되는 리눅스 서버(systemd 256 이상. Ubuntu 26.04에서 확인했고 24.04에서는 되지 않는다), Docker 계정, Claude 구독. [Docker Sandboxes(`sbx`)](https://docs.docker.com/ai/sandboxes/)는 Ubuntu면 `setup.sh`가 명령을 보여 주고 허락을 받은 뒤 설치해 준다. 다른 배포판에서는 명령만 알려 준다.
 
 레포에서 빌드하려면(개발하거나 x86-64가 아닐 때) Rust 1.93 이상과 Node.js(빌드에만)가 더 필요하다.
 

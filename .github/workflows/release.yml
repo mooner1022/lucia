@@ -3,8 +3,9 @@
 #
 # 받는 쪽: curl -fsSL https://github.com/mooner1022/lucia/releases/latest/download/install.sh | bash
 #
-# Ubuntu 24.04에서 빌드한다: Docker Sandboxes(sbx)가 지원하는 가장 오래된 Ubuntu라, 여기서 만든 바이너리의 glibc가
-# 그보다 새 배포판에서도 돈다.
+# Ubuntu 24.04에서 빌드한다: 여기서 만든 바이너리의 glibc가 그보다 새 배포판에서 모두 돈다. Lucia가 실제로 도는 곳은
+# systemd 256 이상이라(자격 증명에 `systemd-creds --user`를 쓴다) 24.04보다 새 배포판이다. 그래서 이 러너에서는 실제
+# 자격 증명을 쓰는 시험이 스스로 건너뛴다(쓸 수 있는지를 먼저 본다).
 name: release
 
 on:
