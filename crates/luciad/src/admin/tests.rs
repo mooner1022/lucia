@@ -2589,6 +2589,10 @@ async fn expressions_are_uploaded_edited_and_removed_from_the_page() {
 /// 결정 0046: OpenAI API 키와 이미지 하루 예산을 "연결" 화면에서 다룬다. 키 값은 다시 보이지 않는다.
 #[tokio::test]
 async fn image_key_and_budget_are_managed_from_the_connections_page() {
+    if !crate::credentials::user_credentials_work() {
+        eprintln!("systemd-creds --user를 쓸 수 없음(systemd 256 미만이거나 없음), 건너뜀");
+        return;
+    }
     let f = fixture().await;
     f.log_in();
     let v = page_json(&f, "/connections").await;
@@ -3223,6 +3227,10 @@ async fn the_owner_uploads_and_removes_the_profile_image() {
 /// 초기 설정의 상태: 필수는 대화할 곳 하나(Discord 토큰과 소유자, 또는 알림 받을 곳으로 고른 앱)뿐이다.
 #[tokio::test]
 async fn setup_is_complete_once_there_is_a_place_to_talk() {
+    if !crate::credentials::user_credentials_work() {
+        eprintln!("systemd-creds --user를 쓸 수 없음(systemd 256 미만이거나 없음), 건너뜀");
+        return;
+    }
     let f = fixture_with("\n[gateway]\nbind = [\"127.0.0.1:18790\"]\n").await;
     f.log_in();
     let steps = |v: &Value| -> Vec<(String, String)> {
@@ -3461,6 +3469,10 @@ async fn setup_notice_is_dismissed_and_reopened() {
 /// 로그인한 뒤 첫 화면: 대화할 곳이 없고 안내를 끄지 않았을 때만 초기 설정이다. 이미 설정한 설치는 전과 같이 홈이다.
 #[tokio::test]
 async fn login_lands_on_the_setup_screen_only_while_it_is_unfinished() {
+    if !crate::credentials::user_credentials_work() {
+        eprintln!("systemd-creds --user를 쓸 수 없음(systemd 256 미만이거나 없음), 건너뜀");
+        return;
+    }
     let f = fixture().await;
     set_password(&f);
     let login = || async {
