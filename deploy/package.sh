@@ -48,6 +48,9 @@ git archive HEAD deploy plugin character README.md docs/DEPLOY.md | tar -x -C "$
 rm -f -- "$ROOT/deploy/package.sh" "$ROOT/deploy/build-ui.sh"
 install -m 0755 target/release/luciad "$ROOT/luciad"
 printf '%s\n' "$VERSION" >"$ROOT/VERSION"
+# 묶음에 든 파일의 목록. 받는 쪽(install.sh)이 다음 업데이트 때 "예전 묶음에는 있었고 새 묶음에는 없는 파일"만 지운다
+# (사용자가 풀린 자리에 따로 만든 파일, 예: deploy/traefik/.env는 지우지 않는다).
+(cd "$ROOT" && find . -type f ! -name MANIFEST | sed 's#^\./##' | LC_ALL=C sort >MANIFEST)
 
 mkdir -p "$OUT"
 # 같은 내용이면 같은 묶음이 나오게 순서·소유자·시각을 고정한다(시각은 그 커밋의 것).

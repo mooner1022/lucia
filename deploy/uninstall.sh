@@ -372,9 +372,12 @@ summary() {
     for item in "${LEFT[@]}"; do echo "    - $item"; done
     echo
   fi
+  # 받아 쓰는 설치에서는 이 스크립트가 든 자리(~/.local/lib/lucia/release)가 "바이너리" 단계에서 함께 지워진다.
+  local repo_line="레포           $REPO   (지우려면: rm -rf '$REPO')"
+  [[ $REPO == "$BIN_DIR"/* ]] && repo_line="레포           없음(받아 쓰는 설치: 풀어 둔 릴리스는 바이너리와 함께 지워졌거나 $BIN_DIR 에 있습니다)"
   cat <<EOF
   ${B}끝났습니다.${N} 이 스크립트가 건드리지 않은 것:
-    레포           $REPO   (지우려면: rm -rf '$REPO')
+    $repo_line
     도구           sbx, Rust, Node.js (다른 데 쓰지 않으면 각자의 방법으로 지웁니다)
     바깥의 토큰     Discord 봇, Google 동의, Firebase 키, OpenAI 키 (그쪽 화면에서 거둡니다)
 EOF

@@ -24,6 +24,8 @@ lucia_install() {
   local asset="lucia-x86_64-linux.tar.gz"
   local lib="$HOME/.local/lib/lucia"
   local dest="$lib/release"
+  local unit="$HOME/.config/systemd/user/luciad.service"
+  local db="${LUCIA_DATA_DIR:-$HOME/.local/share/lucia}/lucia.sqlite"
 
   say() { printf '%s\n' "$*"; }
   fail() {
@@ -38,6 +40,12 @@ lucia_install() {
   for tool in curl tar sha256sum python3; do
     command -v "$tool" >/dev/null 2>&1 || fail "$tool 이(가) 필요합니다(Ubuntu: sudo apt install $tool)."
   done
+
+  # 레포에서 빌드해 설치한 서버에는 풀지 않는다: 서비스와 바이너리만 릴리스 쪽으로 바뀌고 샌드박스는 레포를 붙인 채라
+  # 둘이 섞인다. 그런 서버는 레포에서 업데이트한다.
+  if [[ -f $unit ]] && ! grep -qx "WorkingDirectory=$dest" "$unit"; then
+    fail "이 서버의 Lucia는 레포에서 빌드해 설치한 것입니다($(sed -n 's/^WorkingDirectory=//p' "$unit")). 업데이트는 그 레포에서: git pull && deploy/install.sh"
+  fi
 
   local url
   if [[ -n $base ]]; then
@@ -69,32 +77,49 @@ lucia_install() {
   new="$(cat "$src/VERSION")"
   [[ -f $dest/VERSION ]] && old="$(cat "$dest/VERSION")"
 
-  # 자리를 지킨 채 내용만 맞춘다: 새 파일을 덮어쓰고, 묶음에 없는 옛 파일을 지운다.
+  # 이미 돌고 있는 설치면, 풀기 전에 하는 중인 작업이 없는지 본다(풀고 나서 멈추면 plugin만 새것이 된다).
+  # 받은 바이너리로 저장소를 읽기 전용으로 본다. 읽지 못해도 멈춘다.
+  if [[ -x $lib/luciad && -f $unit && -f $db && ${LUCIA_NO_SETUP:-0} != 1 ]]; then
+    local running
+    running="$({ "$src/luciad" store-status --db "$db" 2>/dev/null || true; } | sed -n 's/^running_tasks=//p')"
+    [[ -n $running ]] || fail "저장소의 상태를 읽지 못했습니다($db). 아무것도 바꾸지 않았습니다."
+    [[ $running == 0 ]] || fail "하는 중인 작업이 ${running}개 있습니다. 끝난 뒤 다시 돌려 주세요. 아무것도 바꾸지 않았습니다."
+  fi
+
+  # 자리를 지킨 채 내용만 맞춘다: 새 파일을 덮어쓰고, 예전 묶음에는 있었는데 새 묶음에는 없는 파일만 지운다
+  # (묶음의 MANIFEST로 안다. 사용자가 이 자리에 따로 만든 파일은 건드리지 않는다).
   mkdir -p "$dest"
   python3 -I - "$src" "$dest" <<'PY'
 import os, shutil, sys
 src, dst = sys.argv[1:3]
-keep = set()
+
+def manifest(root):
+    try:
+        with open(os.path.join(root, "MANIFEST"), encoding="utf-8") as f:
+            return {line.strip() for line in f if line.strip()}
+    except OSError:
+        return set()
+
+old = manifest(dst)
 for root, dirs, files in os.walk(src):
     rel = os.path.relpath(root, src)
     target = dst if rel == "." else os.path.join(dst, rel)
     os.makedirs(target, exist_ok=True)
-    keep.add(os.path.normpath(target))
     for name in files:
         out = os.path.join(target, name)
         part = out + ".part"
         shutil.copy2(os.path.join(root, name), part)
         os.replace(part, out)
-        keep.add(os.path.normpath(out))
-for root, dirs, files in os.walk(dst, topdown=False):
-    for name in files:
-        path = os.path.normpath(os.path.join(root, name))
-        if path not in keep:
-            os.remove(path)
-    for name in dirs:
-        path = os.path.normpath(os.path.join(root, name))
-        if path not in keep and not os.listdir(path):
-            os.rmdir(path)
+new = manifest(dst)
+for rel in sorted(old - new):
+    # 목록의 글을 그대로 믿지 않는다: 이 디렉터리 안의 보통 파일일 때만 지운다.
+    path = os.path.normpath(os.path.join(dst, rel))
+    if path.startswith(dst + os.sep) and os.path.isfile(path) and not os.path.islink(path):
+        os.remove(path)
+        parent = os.path.dirname(path)
+        while parent != dst and not os.listdir(parent):
+            os.rmdir(parent)
+            parent = os.path.dirname(parent)
 PY
   if [[ -n $old && $old != "$new" ]]; then say "== 풀었습니다: $dest ($old → $new)"; else say "== 풀었습니다: $dest ($new)"; fi
 
