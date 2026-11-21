@@ -1,11 +1,42 @@
-# Lucia
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/banner-dark.png">
+    <img src="docs/assets/readme/banner-light.png" alt="Lucia: 홈서버에서 늘 켜 두는 한 사람용 개인 비서 에이전트" width="100%">
+  </picture>
+</p>
 
-홈서버에서 늘 켜 두는 **한 사람용 개인 비서 에이전트**다. Claude Code를 실행 엔진으로 쓰고, 그 바깥의 일(기억, 일정, 상태, 알림, 승인)은 Rust 데몬 `luciad`가 맡는다.
+<p align="center">
+  <a href="#빠르게-올리기"><b>빠르게 올리기</b></a> ·
+  <a href="docs/DEPLOY.md">배포 가이드</a> ·
+  <a href="docs/STATUS.md">기능과 권한</a> ·
+  <a href="#앱-lucent">안드로이드 앱</a> ·
+  <a href="docs/app-api.md">앱 접속 API</a>
+</p>
 
-- 메신저(Discord DM이나 자체 앱)로 말을 걸면 답하고, 맡긴 일을 기억했다가 스스로 챙긴다.
-- 아침 브리핑, 메일·일정 변화 알림, 약속한 후속 조치, 반복 루틴, 페이지 감시를 사람 없이 돈다.
-- 메일을 보내거나 폼을 제출하는 것처럼 바깥에 남는 일은 **승인 카드**로 먼저 묻는다.
-- 에이전트는 가상 머신(Docker Sandboxes) 안에서만 돌고, 계정과 자료에 닿는 일은 호스트의 데몬이 확인하고 대신 한다.
+**Lucia**는 홈서버에서 늘 켜 두는 **한 사람용 개인 비서 에이전트**다. Claude Code를 실행 엔진으로 쓰고, 그 바깥의 일(기억, 일정, 상태, 알림, 승인)은 Rust 데몬 `luciad`가 맡는다.
+
+<table>
+  <tr><td width="170"><b>기억하고 이어 간다</b></td><td>메신저(Discord DM이나 <a href="#앱-lucent">안드로이드 앱</a>)로 말을 걸면 답하고, 맡긴 일을 기억했다가 스스로 챙긴다.</td></tr>
+  <tr><td width="170"><b>사람 없이도 돈다</b></td><td>아침 브리핑, 메일·일정 변화 알림, 약속한 후속 조치, 반복 루틴, 페이지 감시.</td></tr>
+  <tr><td width="170"><b>묻고 나서 한다</b></td><td>메일을 보내거나 폼을 제출하는 것처럼 바깥에 남는 일은 <b>승인 카드</b>로 먼저 묻는다.</td></tr>
+  <tr><td width="170"><b>가둬 놓고 쓴다</b></td><td>에이전트는 가상 머신(Docker Sandboxes) 안에서만 돌고, 계정과 자료에 닿는 일은 호스트의 데몬이 확인하고 대신 한다.</td></tr>
+</table>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/showcase-dark.png">
+    <img src="docs/assets/readme/showcase-light.png" alt="관리 화면: 데스크톱의 홈과 휴대폰의 초기 설정" width="100%">
+  </picture>
+</p>
+
+<p align="center"><sub>관리 화면. 상태를 보고, 승인하고, 연결과 캐릭터를 정한다. 그림은 시험 데이터로 찍은 것이다.</sub></p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/divider-dark.svg">
+    <img src="docs/assets/readme/divider-light.svg" alt="" width="560">
+  </picture>
+</p>
 
 ## 빠르게 올리기
 
@@ -31,7 +62,34 @@ deploy/install.sh                            # 빌드, 설치, 서비스 시작
 
 링크에서 비밀번호를 정하고 로그인하면 **초기 설정** 화면이 뜬다. 여기서 이름과 프로필 그림, Discord 봇, Google 메일·일정, 앱 푸시(Firebase), 이미지 생성 키를 넣는다. 필수는 대화할 곳 하나(Discord 봇이나 앱)뿐이다.
 
-단계마다의 설명, 선택 기능(브라우저, 코드 실행, 앱 접속 API, 밖에서 접속), 업데이트와 되돌리기, 막혔을 때 볼 것은 **[배포 가이드](docs/DEPLOY.md)**에 있다.
+단계마다의 설명, 선택 기능(브라우저, 코드 실행, 앱 접속 API, 밖에서 접속), 업데이트와 되돌리기, 막혔을 때 볼 것은 [배포 가이드](docs/DEPLOY.md)에 있다.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/divider-dark.svg">
+    <img src="docs/assets/readme/divider-light.svg" alt="" width="560">
+  </picture>
+</p>
+
+## 앱: Lucent
+
+<a href="https://github.com/mooner1022/lucent"><img src="docs/assets/readme/lucia-round.png" alt="Lucia의 프로필 그림" width="112" align="right"></a>
+
+<b><a href="https://github.com/mooner1022/lucent">Lucent</a></b>는 Lucia의 안드로이드 클라이언트다. Discord 없이도 같은 Lucia와 같은 기억으로 이야기한다.
+
+- 대화, 진행 안내, 파일, 승인 카드(버튼과 값 입력)를 받는다. 앱이 꺼져 있으면 푸시(FCM)가 깨운다.
+- Lucia가 사이트에 로그인해야 할 때 아이디와 비밀번호를 앱의 카드에서 넣고, 사람 확인(캡차) 화면은 넘겨받아 직접 푼다.
+- 사용자가 켠 휴대폰 기능(위치, 알림 읽기 등)만 Lucia에게 내준다.
+
+데몬 쪽에서는 설정 `[gateway]`를 켜고 관리 화면의 초기 설정 → "앱과 푸시"에서 토큰을 발급한다([배포 가이드 7장](docs/DEPLOY.md)). 앱이 따르는 규격은 [`docs/app-api.md`](docs/app-api.md)다.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/divider-dark.svg">
+    <img src="docs/assets/readme/divider-light.svg" alt="" width="560">
+  </picture>
+</p>
+
 
 ## 구성
 
@@ -50,7 +108,7 @@ deploy/install.sh                            # 빌드, 설치, 서비스 시작
 
 - [배포 가이드](docs/DEPLOY.md): 처음 올리기부터 업데이트까지
 - [구현 현황](docs/STATUS.md): 무엇을 할 수 있고 누가 어디까지 할 수 있는지(기능과 권한)
-- [앱 접속 API](docs/app-api.md): 자체 앱이 붙는 WebSocket·HTTP 규격
+- [앱 접속 API](docs/app-api.md): 앱이 붙는 WebSocket·HTTP 규격. 안드로이드 클라이언트는 [Lucent](https://github.com/mooner1022/lucent)
 - [결정 기록](docs/decisions/): 설계를 그렇게 한 까닭
 - [개발 계획](docs/PLAN.md), [PoC 결과](poc/RESULTS.md)
 
@@ -69,3 +127,15 @@ web/admin/e2e/run.sh --sets stress,full,alt --shots   # 실제 브라우저로 �
 - 소유자 한 명을 위한 구성이다. 여러 사용자를 나누는 기능은 없다.
 - 대화와 정기 실행이 Claude 구독 사용량을 쓴다.
 - 관리 페이지와 접속 API는 집 LAN·VPN 주소에만 연다. 밖으로 열 때는 TLS를 맡는 리버스 프록시와 2단계 인증을 쓴다.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/divider-dark.svg">
+    <img src="docs/assets/readme/divider-light.svg" alt="" width="560">
+  </picture>
+</p>
+
+<p align="center">
+  <img src="docs/assets/readme/logo.svg" alt="" width="40"><br>
+  <sub>구름처럼, 조용히 흐르고 달빛처럼, 은은히 비추며…</sub>
+</p>

@@ -18,7 +18,7 @@
 | `plugin/` | 훅(허용 도구 이중 방어) | 상주 VM에 읽기 전용 마운트 |
 | `character/character.md` | 캐릭터(시스템 프롬프트 뒤에 붙는 글) | 상주 VM에 읽기 전용 마운트 |
 
-- 채널: Discord(DM, 작업 스레드, 다른 서버에서 부르기), 자체 앱 접속 API 판 2(WebSocket+HTTP, 설정으로 켤 때만, 기본 꺼짐, 결정 0043). 앱 화면 자체는 아직 없다.
+- 채널: Discord(DM, 작업 스레드, 다른 서버에서 부르기), 자체 앱 접속 API 판 2(WebSocket+HTTP, 설정으로 켤 때만, 기본 꺼짐, 결정 0043). 안드로이드 클라이언트는 다른 저장소에 있다([Lucent](https://github.com/mooner1022/lucent)).
 - 모델: 채팅·브리핑 `sonnet`, 회고·신호 분류 `haiku`(설정 `[models]`).
 
 ### 1.1 실행의 흐름

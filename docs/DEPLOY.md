@@ -24,7 +24,7 @@ Node를 시스템에 깔지 않으려면 공식 배포판을 `~/.local/opt/node`
 대화할 곳은 둘 가운데 하나가 있어야 한다. 설치 뒤 관리 페이지에서 정한다.
 
 - **Discord 봇**(가장 빠르다): Discord 개발자 포털에서 만든 봇의 토큰과 내 사용자 ID.
-- **자체 앱**: 접속 API(`docs/app-api.md`)로 붙는 앱. 앱 자체는 이 저장소에 없다.
+- **앱**: 접속 API(`docs/app-api.md`)로 붙는 앱. 안드로이드 클라이언트는 [Lucent](https://github.com/mooner1022/lucent)다(다른 저장소).
 
 ## 1. 저장소 받기
 

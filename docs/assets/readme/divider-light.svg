@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 24" width="800" height="24" role="img" aria-label="">
+<defs>
+<linearGradient id="l" x1="0" x2="1"><stop offset="0" stop-color="#b89454" stop-opacity="0"/><stop offset="1" stop-color="#b89454"/></linearGradient>
+<linearGradient id="r" x1="0" x2="1"><stop offset="0" stop-color="#b89454"/><stop offset="1" stop-color="#b89454" stop-opacity="0"/></linearGradient>
+</defs>
+<rect x="120" y="11.5" width="262" height="1" fill="url(#l)"/>
+<rect x="418" y="11.5" width="262" height="1" fill="url(#r)"/>
+<g transform="translate(400 12.6) scale(0.82)"><g fill="#2f3f96"><path transform="rotate(0)" d="M0 -1.5C-3.1 -2.1 -4.9 -4.9 -4.1 -7.7C-3.5 -9.8 -1.5 -10.5 0 -11.1C1.5 -10.5 3.5 -9.8 4.1 -7.7C4.9 -4.9 3.1 -2.1 0 -1.5Z"/><path transform="rotate(72)" d="M0 -1.5C-3.1 -2.1 -4.9 -4.9 -4.1 -7.7C-3.5 -9.8 -1.5 -10.5 0 -11.1C1.5 -10.5 3.5 -9.8 4.1 -7.7C4.9 -4.9 3.1 -2.1 0 -1.5Z"/><path transform="rotate(144)" d="M0 -1.5C-3.1 -2.1 -4.9 -4.9 -4.1 -7.7C-3.5 -9.8 -1.5 -10.5 0 -11.1C1.5 -10.5 3.5 -9.8 4.1 -7.7C4.9 -4.9 3.1 -2.1 0 -1.5Z"/><path transform="rotate(216)" d="M0 -1.5C-3.1 -2.1 -4.9 -4.9 -4.1 -7.7C-3.5 -9.8 -1.5 -10.5 0 -11.1C1.5 -10.5 3.5 -9.8 4.1 -7.7C4.9 -4.9 3.1 -2.1 0 -1.5Z"/><path transform="rotate(288)" d="M0 -1.5C-3.1 -2.1 -4.9 -4.9 -4.1 -7.7C-3.5 -9.8 -1.5 -10.5 0 -11.1C1.5 -10.5 3.5 -9.8 4.1 -7.7C4.9 -4.9 3.1 -2.1 0 -1.5Z"/></g></g>
+</svg>
