@@ -41,6 +41,7 @@ mod leak;
 mod mask;
 mod mcp;
 mod models;
+mod notes;
 mod office;
 mod packages;
 mod poc;
@@ -333,6 +334,7 @@ async fn main() -> anyhow::Result<()> {
                     received_at: chrono::Utc::now(),
                     reply_to: None,
                     venue: None,
+                    context: None,
                 })
                 .await?;
             print_sent(&handle);

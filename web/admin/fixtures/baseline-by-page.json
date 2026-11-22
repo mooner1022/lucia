@@ -446,8 +446,7 @@
     "link /skills",
     "link /system",
     "link /work",
-    "opt /app/notify client ",
-    "opt /app/notify client qz-client-a"
+    "opt /app/notify client "
   ],
   "/expressions": [
     "ctl /expressions/add button[submit] name=",

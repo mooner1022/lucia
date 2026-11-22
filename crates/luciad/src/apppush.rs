@@ -122,6 +122,21 @@ impl AppPush {
 
     /// 깨우기 하나를 메시지로.
     fn message(&self, job: &PushJob) -> PushMessage {
+        // 다른 기기에서 봤다(결정 0066): 보이는 알림 없이, 앱이 띄워 둔 알림을 치우게 한다.
+        if job.kind == "clear" {
+            let mut data = BTreeMap::new();
+            data.insert("type".into(), "clear".into());
+            data.insert("seq".into(), job.seq.to_string());
+            data.insert("client".into(), job.client_id.clone());
+            return PushMessage {
+                token: job.token.clone(),
+                title: None,
+                body: None,
+                data,
+                high_priority: false,
+                collapse: None,
+            };
+        }
         let generic = match job.kind.as_str() {
             "card" => "확인할 카드가 있습니다",
             "files" => "파일이 왔습니다",
@@ -151,7 +166,7 @@ impl AppPush {
 
     /// 글 알림 간격을 지키나(카드는 늘 보낸다).
     fn due(&self, job: &PushJob) -> bool {
-        if job.kind == "card" {
+        if job.kind == "card" || job.kind == "clear" {
             return true;
         }
         let mut last = self.last_text.lock().expect("push lock");

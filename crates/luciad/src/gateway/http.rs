@@ -33,6 +33,7 @@ pub(super) fn routes() -> Router<Arc<Gateway>> {
         .route("/v1/profile", get(profile))
         .route("/v1/profile/avatar/{id}", get(profile_avatar))
         .route("/v1/browser/handover/frame/{tab}", get(handover_frame))
+        .route("/v1/voice", axum::routing::post(voice))
 }
 
 fn error(status: StatusCode, code: &str, message: &str) -> Response {
@@ -130,6 +131,8 @@ struct HistoryQuery {
     before: Option<i64>,
     limit: Option<u64>,
     scope: Option<String>,
+    /// 새 모양(결정 0066): `2`면 `parts`와 `files`를 싣는다.
+    shape: Option<u64>,
 }
 
 async fn history(
@@ -142,7 +145,7 @@ async fn history(
         Ok(c) => c,
         Err(r) => return r,
     };
-    let params = json!({"before": q.before, "limit": q.limit, "scope": q.scope});
+    let params = json!({"before": q.before, "limit": q.limit, "scope": q.scope, "shape": q.shape});
     match methods::history(&gw, &client, &params) {
         Ok(v) => Json(v).into_response(),
         Err(e) => error(StatusCode::BAD_REQUEST, &e.code, &e.message),
@@ -152,6 +155,8 @@ async fn history(
 #[derive(Deserialize)]
 struct UploadQuery {
     name: Option<String>,
+    /// `short`면 짧게 둔다(결정 0066): 1시간 뒤 지우고, 최근 파일 목록·보관함·답 첨부에서 뺀다.
+    keep: Option<String>,
 }
 
 /// 파일 올리기: 본문이 파일 그대로다(`?name=<파일 이름>`). 돌려준 ID를 `message.files`에 넣는다.
@@ -184,30 +189,42 @@ async fn upload(
             "이 데몬은 파일을 받지 않는다",
         );
     };
+    let short = match q.keep.as_deref() {
+        None | Some("") | Some("normal") => false,
+        Some("short") => true,
+        Some(_) => {
+            return error(
+                StatusCode::BAD_REQUEST,
+                "bad_params",
+                "keep은 short만 받는다",
+            );
+        }
+    };
     let name = q.name.unwrap_or_else(|| "file".into());
-    match files.save(
-        "in",
-        &name,
-        &body,
-        Some(&conversation(&client.id).0),
-        chrono::Utc::now(),
-    ) {
-        Ok(rec) => (
-            StatusCode::CREATED,
-            Json(json!({
+    let now = chrono::Utc::now();
+    match files.save("in", &name, &body, Some(&conversation(&client.id).0), now) {
+        Ok(rec) => {
+            let mut out = json!({
                 "id": rec.id,
                 "name": rec.name,
                 "size": rec.size,
                 "mime": rec.mime,
                 "kind": rec.kind,
-            })),
-        )
-            .into_response(),
+            });
+            if short {
+                match files.make_short(&rec.id, now) {
+                    Ok(at) => out["expires_at"] = json!(at.to_rfc3339()),
+                    Err(e) => return error(StatusCode::INTERNAL_SERVER_ERROR, "failed", &e),
+                }
+            }
+            (StatusCode::CREATED, Json(out)).into_response()
+        }
         Err(e) => error(StatusCode::BAD_REQUEST, "bad_file", &e),
     }
 }
 
-/// 파일 받기: 이 앱 대화로 오간 파일만.
+/// 파일 받기: 이 앱 대화로 오간 파일, 그 대화로 보낸 파일. 범위 `owner_files`가 있으면 소유자의 다른 대화 것도
+/// (결정 0066, [`methods::can_download`]).
 async fn download(
     State(gw): State<Arc<Gateway>>,
     ConnectInfo(peer): ConnectInfo<SocketAddr>,
@@ -221,10 +238,9 @@ async fn download(
     let Some(files) = gw.files.get() else {
         return error(StatusCode::NOT_FOUND, "not_found", "없는 파일");
     };
-    let conv = conversation(&client.id).0;
     let Some(rec) = files
         .get(&id)
-        .filter(|f| f.conversation.as_deref() == Some(conv.as_str()))
+        .filter(|f| methods::can_download(&gw.store.lock().expect("store lock"), &client, f))
     else {
         return error(StatusCode::NOT_FOUND, "not_found", "없는 파일");
     };
@@ -431,6 +447,22 @@ async fn handover_frame(
         }
         Err(_) => error(StatusCode::NOT_FOUND, "not_found", "없는 탭"),
     }
+}
+
+/// 받아쓰기(결정 0066의 제안 12): 이 데몬에는 받아쓰기가 없다. 앱은 `capabilities.voice`가 없으니 부르지 않는다.
+async fn voice(
+    State(gw): State<Arc<Gateway>>,
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    headers: HeaderMap,
+) -> Response {
+    if let Err(r) = authorize(&gw, peer, &headers) {
+        return r;
+    }
+    error(
+        StatusCode::NOT_IMPLEMENTED,
+        "unsupported",
+        "이 데몬에는 받아쓰기가 없다",
+    )
 }
 
 /// 이모지·스티커 그림. 파일 ID가 내용 해시라 바뀌지 않는다(앱이 영구 캐시한다).

@@ -202,19 +202,23 @@ impl<R: AgentRunner, C: ChannelAdapter> Engine<R, C> {
         if let Some(details) = report.details.as_deref() {
             parts.extend(crate::segments::split(details));
         }
-        let sent = self
+        let delivered = self
             .deliver(&notify, parts, &report.attachments, Some(&run_id))
             .await?;
-        let text = crate::segments::join(&sent);
-        self.store().add_episode(&NewEpisode {
-            at: finished,
-            kind: EpisodeKind::AgentReport,
-            origin: Origin::Agent,
-            conversation: Some(notify.0.clone()),
-            session_id: Some(session.id().to_string()),
-            run_id: Some(run_id),
-            body: format!("[정합성 검사] {text}"),
-        })?;
+        let text = crate::segments::join(&delivered.sent);
+        {
+            let store = self.store();
+            let id = store.add_episode(&NewEpisode {
+                at: finished,
+                kind: EpisodeKind::AgentReport,
+                origin: Origin::Agent,
+                conversation: Some(notify.0.clone()),
+                session_id: Some(session.id().to_string()),
+                run_id: Some(run_id),
+                body: format!("[정합성 검사] {text}"),
+            })?;
+            delivered.record(&store, id, &notify, finished);
+        }
         out.sent = Some(text);
         Ok(out)
     }

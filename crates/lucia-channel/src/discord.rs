@@ -880,6 +880,7 @@ impl InboundFilter {
                 sent_at: r.sent_at,
             }),
             venue,
+            context: None,
         })
     }
 
@@ -2302,6 +2303,7 @@ mod tests {
                 files: vec![OutFile {
                     name: "a.md".into(),
                     bytes: b"# hi".to_vec(),
+                    id: None,
                 }],
             })
             .await
@@ -2319,6 +2321,7 @@ mod tests {
                     .map(|i| OutFile {
                         name: format!("{i}.txt"),
                         bytes: vec![b'x'],
+                        id: None,
                     })
                     .collect(),
             })

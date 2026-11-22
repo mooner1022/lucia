@@ -697,9 +697,9 @@ impl AdminState {
                     .flatten(),
             )
         };
-        // 알림 받을 곳이 앱이고 닿을 수 있으면 앱으로(결정 0043), 아니면 Discord DM으로.
+        // 알림 받을 곳이 앱(앱 모두 포함, 결정 0066)이고 닿을 수 있으면 앱으로(결정 0043), 아니면 Discord DM으로.
         if let (Some(client), Some(gw)) = (app, self.gateway.get())
-            && (gw.online(&client) || gw.can_push(&client))
+            && gw.reachable(&client)
             && gw
                 .send(lucia_core::Outbound::Text {
                     conversation: crate::gateway::conversation(&client),
@@ -3257,6 +3257,9 @@ struct ApiClientForm {
     /// 브라우저 화면 넘겨받기를 이 앱에서(결정 0063).
     #[serde(default)]
     scope_browser_handover: Option<String>,
+    /// 다른 대화(Discord DM, 다른 앱)의 파일을 이 앱에서 받는다(결정 0066).
+    #[serde(default)]
+    scope_owner_files: Option<String>,
 }
 
 fn form_scopes(f: &ApiClientForm) -> Vec<String> {
@@ -3269,6 +3272,9 @@ fn form_scopes(f: &ApiClientForm) -> Vec<String> {
     }
     if f.scope_browser_handover.is_some() {
         out.push(crate::gateway::scopes::BROWSER_HANDOVER.to_owned());
+    }
+    if f.scope_owner_files.is_some() {
+        out.push(crate::gateway::scopes::OWNER_FILES.to_owned());
     }
     out
 }
@@ -3412,7 +3418,7 @@ struct AppNotifyForm {
     client: String,
 }
 
-/// 알림 받을 곳(결정 0043): Discord DM이나 앱 하나.
+/// 알림 받을 곳(결정 0043): Discord DM 또는 앱 모두(결정 0066·0067).
 async fn app_notify(
     State(state): State<Arc<AdminState>>,
     headers: HeaderMap,
@@ -3433,24 +3439,29 @@ async fn app_notify(
                 store.add_activity("client_admin", "알림 받을 곳: Discord DM", None, Utc::now());
             return Ok("알림을 Discord DM으로 받습니다.".into());
         }
-        let c = store
-            .active_client(client)
-            .map_err(|e| e.to_string())?
-            .filter(|c| c.role == crate::gateway::Role::App.as_str())
-            .ok_or("없거나 취소한 앱입니다.")?;
+        // 앱으로 받는다(결정 0067: 앱은 기기가 여럿이어도 한 대화라 앱 하나를 고르는 것은 없다). 예전 화면이
+        // 앱 하나의 ID를 보내도 앱 모두로 둔다. 취소하지 않은 앱이 하나라도 있을 때만(없으면 알림이 갈 곳이 없다).
+        if client != crate::gateway::ALL_APPS
+            && store
+                .active_client(client)
+                .map_err(|e| e.to_string())?
+                .filter(|c| c.role == crate::gateway::Role::App.as_str())
+                .is_none()
+        {
+            return Err("없거나 취소한 앱입니다.".into());
+        }
+        if crate::gateway::active_apps(&store).is_empty() {
+            return Err("취소하지 않은 앱이 없습니다. 앱 토큰을 먼저 발급하세요.".into());
+        }
         store
-            .set_setting(crate::gateway::keys::NOTIFY_CLIENT, &c.id, Utc::now())
+            .set_setting(
+                crate::gateway::keys::NOTIFY_CLIENT,
+                crate::gateway::ALL_APPS,
+                Utc::now(),
+            )
             .map_err(|e| e.to_string())?;
-        let _ = store.add_activity(
-            "client_admin",
-            &format!("알림 받을 곳: 앱 {} ({})", c.name, c.id),
-            None,
-            Utc::now(),
-        );
-        Ok(format!(
-            "알림·브리핑·승인 카드를 앱 \"{}\"으로 받습니다. 앱이 끊겨 있고 푸시도 없으면 Discord DM으로 갑니다.",
-            c.name
-        ))
+        let _ = store.add_activity("client_admin", "알림 받을 곳: 앱 모두", None, Utc::now());
+        Ok("알림·브리핑·승인 카드를 앱에 둡니다. 모든 앱이 같은 대화를 받고, 사람이 있는 기기에서 울리며, 보지 않으면 휴대폰(푸시)으로 넘깁니다.".into())
     })();
     let (tone, text) = match result {
         Ok(t) => (Tone::Ok, t),

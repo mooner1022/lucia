@@ -330,16 +330,18 @@ impl<R: AgentRunner, C: ChannelAdapter> Engine<R, C> {
         let summary: String = report.summary.chars().take(600).collect();
         // 저장소 잠금을 쥐기 전에(notify_target도 저장소를 잠근다).
         let owner = self.notify_target();
+        // 결과 에피소드(상주 대화에 남긴 것): 보낸 뒤에 그 말의 모양을 남긴다.
+        let mut result_episode: Option<i64> = None;
         {
             let store = self.store();
             store.set_task_result(&task.id, &crate::mask::global().mask(&summary), finished)?;
             // 상주 대화가 결과를 알게 한다(다음 채팅의 최근 흐름·검색에 잡힌다).
             if let Some(owner) = owner {
-                store.add_episode(&NewEpisode {
+                let id = store.add_episode(&NewEpisode {
                     at: finished,
                     kind: EpisodeKind::AgentReport,
                     origin: Origin::Agent,
-                    conversation: Some(owner.0),
+                    conversation: Some(owner.0.clone()),
                     session_id: Some(session.id().to_string()),
                     run_id: Some(last_run.clone()),
                     body: format!(
@@ -349,6 +351,7 @@ impl<R: AgentRunner, C: ChannelAdapter> Engine<R, C> {
                         crate::mask::global().mask(&report.summary)
                     ),
                 })?;
+                result_episode = Some(id);
             }
             let _ = store.add_activity(
                 "task_report",
@@ -365,15 +368,23 @@ impl<R: AgentRunner, C: ChannelAdapter> Engine<R, C> {
             *first = format!("[작업: {}] {first}", task.title);
         }
         // 결과를 먼저 저장했으므로, 보내지 못해도 잃지 않는다(확인 기다림으로 두고 알린다).
-        if let Err(err) = self
+        match self
             .deliver(&conversation, parts, &report.attachments, Some(&last_run))
             .await
         {
-            self.alert(format!(
-                "작업 결과를 보내지 못했습니다({}): {err:#}. 관리 페이지 \"맡은 작업\"에 결과가 남아 있습니다.",
-                task.title
-            ))
-            .await;
+            // 스레드로 보냈으면 에피소드는 상주 대화의 것이지만 파일은 보낸 곳(스레드)이 받을 수 있게 한다.
+            Ok(delivered) => {
+                if let Some(id) = result_episode {
+                    delivered.record(&self.store(), id, &conversation, finished);
+                }
+            }
+            Err(err) => {
+                self.alert(format!(
+                    "작업 결과를 보내지 못했습니다({}): {err:#}. 관리 페이지 \"맡은 작업\"에 결과가 남아 있습니다.",
+                    task.title
+                ))
+                .await;
+            }
         }
         if current.status == TaskStatus::WaitingInput {
             // 질문으로 끝났다. 사람의 말이 오면 이어 한다.

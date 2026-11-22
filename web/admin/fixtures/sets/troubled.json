@@ -81,6 +81,7 @@
       "max_categories": 20
     },
     "gateway": {
+      "all_apps": "*",
       "app_role": "app",
       "roles": [
         {
@@ -94,6 +95,7 @@
       ],
       "scope_app_tools": "app_tools",
       "scope_browser_handover": "browser_handover",
+      "scope_owner_files": "owner_files",
       "scope_security_mode": "security_mode",
       "scopes": [
         {
@@ -107,6 +109,10 @@
         {
           "key": "browser_handover",
           "label": "브라우저 화면 넘겨받기"
+        },
+        {
+          "key": "owner_files",
+          "label": "Discord DM의 파일 받기"
         }
       ]
     },

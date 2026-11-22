@@ -95,8 +95,8 @@ pub(super) fn register_builtin(gw: &Gateway) {
 /// 한 번에 돌려주는 기록 수 상한.
 const HISTORY_MAX: usize = 100;
 
-/// `history {before?, limit?, scope?: "app"|"owner"}`: 대화 기록(오래된 것부터). `owner`는 이 앱 대화에 더해
-/// Discord 알림 대화(DM)와 다른 앱 대화까지(같은 Lucia와 나눈 소유자의 대화).
+/// `history {before?, limit?, scope?: "app"|"owner"}`: 대화 기록(오래된 것부터). `app`은 모든 앱 대화(결정 0067),
+/// `owner`는 Discord 알림 대화(DM)까지(같은 Lucia와 나눈 소유자의 대화).
 struct History;
 
 impl AppMethod for History {
@@ -124,22 +124,15 @@ pub(super) fn history(
         Some("owner") => true,
         Some(_) => return Err(CallError::new("bad_params", "scope는 app이나 owner")),
     };
+    // 새 모양(결정 0066): 나뉘어 간 조각(`parts`)과 붙은 파일(`files`). 달라는 앱에만 준다.
+    let shaped = match &params["shape"] {
+        Value::Null => false,
+        v if v.as_u64() == Some(1) => false,
+        v if v.as_u64() == Some(2) => true,
+        _ => return Err(CallError::new("bad_params", "shape는 1이나 2")),
+    };
     let store = gw.store.lock().expect("store lock");
-    let mut convs = vec![conversation(&client.id).0];
-    if owner {
-        if let Some(dm) = store
-            .setting(lucia_store::keys::NOTIFY_CONVERSATION)
-            .ok()
-            .flatten()
-        {
-            convs.push(dm);
-        }
-        for c in store.clients().unwrap_or_default() {
-            if c.revoked_at.is_none() && c.role == "app" && c.id != client.id {
-                convs.push(conversation(&c.id).0);
-            }
-        }
-    }
+    let convs = history_conversations(&store, client, owner);
     // 하나 더 읽어 더 있는지 본다.
     let mut list = store
         .episodes_in_before(&convs, before, limit + 1)
@@ -148,6 +141,14 @@ pub(super) fn history(
     if more {
         list.remove(0);
     }
+    let shapes = if shaped {
+        let ids: Vec<i64> = list.iter().map(|e| e.id).collect();
+        store
+            .episode_shapes(&ids)
+            .map_err(|e| CallError::owned("failed", &e.to_string()))?
+    } else {
+        Default::default()
+    };
     let items: Vec<Value> = list
         .iter()
         .map(|e| {
@@ -156,16 +157,133 @@ pub(super) fn history(
                 lucia_store::Origin::Agent => "lucia",
                 lucia_store::Origin::Daemon => "daemon",
             };
-            json!({
+            let mut item = json!({
                 "id": e.id,
                 "at": e.at.to_rfc3339(),
                 "from": from,
                 "conversation": e.conversation,
                 "body": e.body,
-            })
+            });
+            if let Some(shape) = shapes.get(&e.id) {
+                if let Some(parts) = &shape.parts {
+                    item["parts"] = json!(parts);
+                }
+                if !shape.files.is_empty() {
+                    // 파일 설명 줄은 `files`와 두 번 보이지 않게 뺀다.
+                    item["body"] = json!(without_attachment_line(&e.body));
+                    item["files"] = shape
+                        .files
+                        .iter()
+                        .map(|f| file_entry(gw, &store, client, f))
+                        .collect();
+                }
+            }
+            item
         })
         .collect();
     Ok(json!({"items": items, "more": more}))
+}
+
+/// 기록 항목의 파일 하나: 지금도 있으면 그대로, 지워졌으면 `"gone": true`. 이 토큰으로 받을 수 있는지(`reachable`).
+fn file_entry(
+    gw: &Gateway,
+    store: &lucia_store::Store,
+    client: &lucia_store::Client,
+    f: &lucia_store::EpisodeFile,
+) -> Value {
+    let live = gw.files.get().and_then(|files| {
+        // 저장소 잠금을 쥔 채로 FileStore::get을 부르면 같은 잠금을 다시 잡는다: 기록만 직접 본다.
+        let rec = store.file(&f.id).ok().flatten()?;
+        let expired = store
+            .file_expiry(&f.id)
+            .ok()
+            .flatten()
+            .is_some_and(|at| at <= chrono::Utc::now());
+        (!expired && files.path(&rec).exists()).then_some(rec)
+    });
+    let mut v = json!({
+        "id": f.id,
+        "name": f.name,
+        "size": f.size,
+        "mime": f.mime,
+        "kind": f.kind,
+    });
+    match live {
+        Some(rec) => v["reachable"] = json!(can_download(store, client, &rec)),
+        None => {
+            v["gone"] = json!(true);
+            v["reachable"] = json!(false);
+        }
+    }
+    v
+}
+
+/// 본문 끝의 파일 설명 줄(`[첨부: …]`)을 뺀다(마지막 것 하나).
+fn without_attachment_line(body: &str) -> String {
+    let lines: Vec<&str> = body.split('\n').collect();
+    let Some(at) = lines
+        .iter()
+        .rposition(|l| l.starts_with("[첨부: ") && l.ends_with(']'))
+    else {
+        return body.to_owned();
+    };
+    let mut kept: Vec<&str> = lines[..at].to_vec();
+    kept.extend_from_slice(&lines[at + 1..]);
+    kept.join("\n").trim_end().to_owned()
+}
+
+/// 기록에서 읽을 대화(결정 0067: 앱은 기기가 여럿이어도 한 대화). 앱 모두(`app:*`)와 모든 앱 대화(취소한 앱의 지난
+/// 대화 포함). `owner`이면 Discord DM도.
+pub(super) fn history_conversations(
+    store: &lucia_store::Store,
+    client: &lucia_store::Client,
+    owner: bool,
+) -> Vec<String> {
+    let mut convs = vec![conversation(&client.id).0, conversation(super::ALL_APPS).0];
+    for c in store.clients().unwrap_or_default() {
+        if c.role == "app" && c.id != client.id {
+            convs.push(conversation(&c.id).0);
+        }
+    }
+    if owner
+        && let Some(dm) = store
+            .setting(lucia_store::keys::NOTIFY_CONVERSATION)
+            .ok()
+            .flatten()
+    {
+        convs.push(dm);
+    }
+    convs
+}
+
+/// 이 클라이언트가 이 파일을 받을 수 있는가(결정 0043·0066·0067). 앱 대화는 하나라 어느 앱 대화(앱 모두 포함)로
+/// 오간 파일이든, 또는 그 대화로 보낸 파일. 다만 다른 앱이 짧게 둔 파일(`keep=short`)은 그 앱만. 범위
+/// `owner_files`가 있으면 Discord 알림 대화의 파일도.
+pub(super) fn can_download(
+    store: &lucia_store::Store,
+    client: &lucia_store::Client,
+    rec: &lucia_store::FileRecord,
+) -> bool {
+    let owner = client.scopes.iter().any(|s| s == scopes::OWNER_FILES);
+    let mine = conversation(&client.id).0;
+    let short = store.file_expiry(&rec.id).ok().flatten().is_some();
+    let dm = store
+        .setting(lucia_store::keys::NOTIFY_CONVERSATION)
+        .ok()
+        .flatten();
+    let reads = |conv: &str| {
+        conv == mine
+            || (super::client_of(conv).is_some() && !short)
+            || (owner && dm.as_deref() == Some(conv))
+    };
+    if rec.conversation.as_deref().is_some_and(reads) {
+        return true;
+    }
+    store
+        .file_grants(&rec.id)
+        .unwrap_or_default()
+        .iter()
+        .any(|g| reads(g))
 }
 
 // ---------- 명령 ----------

@@ -908,10 +908,12 @@ mod tests {
         assert!(remember.contains(&"mcp__lucia__memory_delete".to_owned()));
         assert!(
             remember.iter().all(|t| t.contains("memory_")
+                // 책상 메모 도구(결정 0066)는 기억과 같은 갈래라 함께 열린다.
+                || t.contains("__note_")
                 || t.ends_with("report_result")
                 || t.ends_with("__tool_search")
                 || t.ends_with("__tool_call")),
-            "기억 도구와 찾기·부르기만: {remember:?}"
+            "기억·메모 도구와 찾기·부르기만: {remember:?}"
         );
         // 보고만 하는 실행에는 찾기·부르기도 없다(찾을 도구가 없다).
         assert!(

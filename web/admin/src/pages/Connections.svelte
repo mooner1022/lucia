@@ -63,9 +63,11 @@
 
   // 알림 받을 곳 후보: 취소하지 않은 앱 토큰.
   const apps = $derived(s.clients.map(([c]: [Client, boolean]) => c).filter((c) => c.revoked_at === null && c.ui.is_app));
+  // 앱이 하나라도 있으면 "앱 모두"를 고를 수 있다(값은 데몬이 준다, 결정 0066). 앱은 기기가 여럿이어도 한 대화라
+  // 앱 하나를 고르는 것은 없다(결정 0067).
   const notifyOptions = $derived([
     { value: '', label: 'Discord DM' },
-    ...apps.map((c) => ({ value: c.id, label: `앱: ${c.name}` })),
+    ...(apps.length > 0 ? [{ value: consts.gateway.all_apps, label: '앱 모두(사람이 있는 기기에서 울림)' }] : []),
   ]);
   // 밖에서 닿는 주소: 끝의 /를 떼고 https를 wss로 바꾼다.
   const outsideWs = $derived(
@@ -389,6 +391,12 @@
                       help="사이트가 사람 확인(캡차 등)을 띄울 때 이 앱에서 그 화면을 보고 풉니다. 토큰이 새면 로그인된 브라우저를 보고 조작할 수 있습니다."
                       checked={c.ui.has_browser_handover}
                     />
+                    <CheckField
+                      name="scope_owner_files"
+                      label="Discord DM의 파일 받기 허용"
+                      help="Discord DM에서 오간 파일도 이 앱에서 받습니다(다른 앱 대화의 파일은 늘 받습니다). 토큰이 새면 그 파일을 모두 내려받을 수 있습니다."
+                      checked={c.ui.has_owner_files}
+                    />
                     <Cluster><Button type="submit" size="sm">범위 저장</Button></Cluster>
                   </ActionForm>
                 </Disclosure>
@@ -407,7 +415,7 @@
                 {#if !revoked && c.ui.is_app}
                   <p>
                     푸시 {#if c.push_platform !== null}등록({c.push_platform}){:else}없음{/if}
-                    {#if s.app.notify_client === c.id}{' · '}<Badge tone="info">알림 받는 곳</Badge>{/if}
+                    {#if c.ui.is_notify_target}{' · '}<Badge tone="info">알림 받는 곳</Badge>{/if}
                   </p>
                 {/if}
                 {#if c.revoked_at !== null}
@@ -441,6 +449,11 @@
             label="브라우저 화면 넘겨받기 허용"
             help="기본은 꺼짐. 사람 확인(캡차 등) 화면을 이 앱에서 보고 풉니다."
           />
+          <CheckField
+            name="scope_owner_files"
+            label="Discord DM의 파일 받기 허용"
+            help="기본은 꺼짐. Discord DM의 파일도 받습니다(다른 앱 대화의 파일은 늘 받습니다)."
+          />
         </ActionForm>
         <Text size="sm" tone="muted" block>외부 기기 토큰은 아직 이 화면에서 발급하지 않습니다(기기는 이벤트만 보냅니다).</Text>
       </Section>
@@ -456,7 +469,7 @@
         <ActionForm action="/app/notify">
           <SelectField
             label="알림 받을 곳"
-            help="앱을 고르면 브리핑·알림·승인 카드가 그 앱으로 갑니다. Discord DM에서 직접 한 대화의 답은 DM으로 옵니다."
+            help="앱 모두를 고르면 브리핑·알림·승인 카드가 모든 앱에 들어가고, 사람이 있는 기기에서 울립니다. 앱들은 기기가 여럿이어도 한 대화를 나눕니다. Discord DM에서 직접 한 대화의 답은 DM으로 옵니다."
             name="client"
             options={notifyOptions}
             value={s.app.notify_client ?? ''}

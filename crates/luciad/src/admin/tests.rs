@@ -1925,6 +1925,323 @@ async fn browser_handover_scope_is_set_at_issue_and_changed_later() {
     );
 }
 
+/// 앱 토큰의 "Discord DM의 파일 받기" 범위(결정 0066·0067): 발급할 때와 나중에 범위 화면에서 `scope_owner_files` 상자로 켜고 끈다.
+/// 다른 앱 대화의 파일은 범위 없이 받으므로 이 범위는 Discord DM의 파일에만 필요하다(결정 0067).
+/// 다른 범위와 섞여도 서로 간섭하지 않고, 화면 데이터에 이름표·상수·켜짐 표시가 실린다.
+#[tokio::test]
+async fn owner_files_scope_is_set_at_issue_and_changed_later() {
+    let f = fixture().await;
+    f.log_in();
+    let owner_files = crate::gateway::scopes::OWNER_FILES;
+    let client_of = |name: &str| {
+        f.state
+            .store()
+            .clients()
+            .unwrap()
+            .into_iter()
+            .find(|c| c.name == name)
+            .unwrap_or_else(|| panic!("{name} 클라이언트가 없다"))
+    };
+    let mark_of = |v: &Value, name: &str| -> (bool, Vec<String>) {
+        let c = v["snapshot"]["clients"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|pair| &pair[0])
+            .find(|c| c["name"] == name)
+            .unwrap_or_else(|| panic!("{name}이 화면 데이터에 없다"));
+        (
+            c["ui"]["has_owner_files"].as_bool().unwrap(),
+            c["ui"]["scope_labels"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|l| l.as_str().unwrap().to_owned())
+                .collect(),
+        )
+    };
+
+    // 발급할 때: 켜면 그 범위만, 켜지 않으면 범위 없음, 다른 범위와 함께면 발급 폼의 차례대로.
+    let r = f
+        .send(post(
+            "/clients/new",
+            true,
+            &format!("csrf={CSRF}&name=files&scope_owner_files=1"),
+        ))
+        .await;
+    assert_eq!(location(&r), "/connections");
+    f.send(post(
+        "/clients/new",
+        true,
+        &format!("csrf={CSRF}&name=plain"),
+    ))
+    .await;
+    f.send(post(
+        "/clients/new",
+        true,
+        &format!("csrf={CSRF}&name=both&scope_app_tools=1&scope_owner_files=1"),
+    ))
+    .await;
+    assert_eq!(client_of("files").scopes, [owner_files]);
+    assert!(client_of("plain").scopes.is_empty());
+    assert_eq!(
+        client_of("both").scopes,
+        [crate::gateway::scopes::APP_TOOLS, owner_files]
+    );
+
+    // 화면 데이터: 상수, 범위 표, 켜짐 표시, 사람이 읽는 이름.
+    let v = page_json(&f, "/connections").await;
+    assert_eq!(v["consts"]["gateway"]["scope_owner_files"], "owner_files");
+    assert!(
+        v["consts"]["gateway"]["scopes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s["key"] == "owner_files" && s["label"] == "Discord DM의 파일 받기")
+    );
+    let (on, labels) = mark_of(&v, "files");
+    assert!(on);
+    assert_eq!(labels, ["Discord DM의 파일 받기"]);
+    assert!(!mark_of(&v, "plain").0);
+    assert!(mark_of(&v, "both").0);
+
+    // 나중에 범위 화면에서: 켜고, 비우면 그 범위만 빠진다.
+    let plain = client_of("plain").id;
+    let r = f
+        .send(post(
+            &format!("/clients/{plain}/scopes"),
+            true,
+            &format!("csrf={CSRF}&scope_owner_files=1"),
+        ))
+        .await;
+    assert_eq!(location(&r), "/connections");
+    assert_eq!(client_of("plain").scopes, [owner_files]);
+    let both = client_of("both").id;
+    f.send(post(
+        &format!("/clients/{both}/scopes"),
+        true,
+        &format!("csrf={CSRF}&scope_app_tools=1"),
+    ))
+    .await;
+    assert_eq!(
+        client_of("both").scopes,
+        [crate::gateway::scopes::APP_TOOLS],
+        "상자를 비우면 그 범위만 빠진다"
+    );
+    let v = page_json(&f, "/connections").await;
+    assert!(mark_of(&v, "plain").0);
+    assert!(!mark_of(&v, "both").0);
+}
+
+/// 알림 받을 곳은 "앱 모두"(`*`)와 Discord DM 둘뿐이다(결정 0066·0067): 앱으로 받으면 설정에는 늘 `*`가 저장되고,
+/// 취소하지 않은 앱마다 "알림 받는 곳" 표시(`ui.is_notify_target`)가 켜진다. 취소한 앱·기기는 켜지지 않는다.
+/// 예전 화면이 보내는 앱 하나의 ID도 `*`로 저장하고(없거나 취소한 앱은 거절), 예전에 저장된 앱 하나의 ID도 `*`로 읽는다.
+/// 비우면 Discord DM(설정이 지워진다). 취소하지 않은 앱이 없으면 앱으로 둘 수 없다. 초기 설정의 요약은 앱 모두를 적는다.
+#[tokio::test]
+async fn notify_target_is_all_apps_or_discord_dm() {
+    let f = fixture_with("\n[gateway]\nbind = [\"127.0.0.1:18790\"]\n").await;
+    f.log_in();
+    for name in ["first", "second", "gone"] {
+        f.send(post(
+            "/clients/new",
+            true,
+            &format!("csrf={CSRF}&name={name}"),
+        ))
+        .await;
+    }
+    let id_of = |name: &str| {
+        f.state
+            .store()
+            .clients()
+            .unwrap()
+            .into_iter()
+            .find(|c| c.name == name)
+            .unwrap()
+            .id
+    };
+    let (first, second, gone) = (id_of("first"), id_of("second"), id_of("gone"));
+    f.state
+        .store()
+        .create_client(
+            "cl-device",
+            "sensor",
+            crate::gateway::Role::Device.as_str(),
+            "hash",
+            Utc::now(),
+        )
+        .unwrap();
+    f.send(post(
+        &format!("/clients/{gone}/revoke"),
+        true,
+        &format!("csrf={CSRF}"),
+    ))
+    .await;
+    let setting = || {
+        f.state
+            .store()
+            .setting(crate::gateway::keys::NOTIFY_CLIENT)
+            .unwrap()
+    };
+    // 이름별 "알림 받는 곳" 표시.
+    let targets = |v: &Value| -> Vec<(String, bool)> {
+        v["snapshot"]["clients"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|pair| {
+                let c = &pair[0];
+                (
+                    c["name"].as_str().unwrap().to_owned(),
+                    c["ui"]["is_notify_target"].as_bool().unwrap(),
+                )
+            })
+            .collect()
+    };
+    // 목록의 순서에 기대지 않게 이름순으로 돌려준다.
+    let marked = |v: &Value| -> Vec<String> {
+        let mut names: Vec<String> = targets(v)
+            .into_iter()
+            .filter(|(_, on)| *on)
+            .map(|(n, _)| n)
+            .collect();
+        names.sort();
+        names
+    };
+
+    // 처음: 정한 곳이 없다. 상수는 화면 데이터에 있다.
+    let v = page_json(&f, "/connections").await;
+    assert_eq!(v["consts"]["gateway"]["all_apps"], "*");
+    assert!(v["snapshot"]["app"]["notify_client"].is_null());
+    assert!(marked(&v).is_empty());
+
+    // 앱 모두: 설정은 `*`, 안내, 활동 기록, 취소하지 않은 앱 둘에만 표시.
+    let r = f
+        .send(post("/app/notify", true, &format!("csrf={CSRF}&client=*")))
+        .await;
+    assert_eq!(location(&r), "/connections");
+    assert_eq!(setting().as_deref(), Some("*"));
+    assert_eq!(
+        crate::gateway::notify_client(&f.state.store()).as_deref(),
+        Some("*")
+    );
+    assert!(
+        f.state
+            .store()
+            .recent_activity(5)
+            .unwrap()
+            .iter()
+            .any(|a| a.kind == "client_admin" && a.summary == "알림 받을 곳: 앱 모두")
+    );
+    let v = page_json(&f, "/connections").await;
+    assert_eq!(
+        flash_text(&v),
+        "알림·브리핑·승인 카드를 앱에 둡니다. 모든 앱이 같은 대화를 받고, 사람이 있는 기기에서 울리며, 보지 않으면 휴대폰(푸시)으로 넘깁니다."
+    );
+    assert_eq!(v["flash"]["tone"], "ok");
+    assert_eq!(v["snapshot"]["app"]["notify_client"], "*");
+    assert_eq!(marked(&v), ["first", "second"]);
+    let all = targets(&v);
+    assert!(
+        all.contains(&("gone".to_owned(), false)),
+        "취소한 앱: {all:?}"
+    );
+    assert!(all.contains(&("sensor".to_owned(), false)), "기기: {all:?}");
+    // 초기 설정의 앱 단계는 `*`라는 이름의 클라이언트를 찾지 않고 앱 모두라고 적는다.
+    let v = page_json(&f, "/start").await;
+    let app = v["snapshot"]["setup"]["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["key"] == "app")
+        .unwrap();
+    assert!(
+        app["summary"]
+            .as_str()
+            .unwrap()
+            .contains("알림 받는 곳 앱 모두"),
+        "{app}"
+    );
+
+    // 예전 화면이 앱 하나의 ID를 보내도 앱 모두로 저장한다(앱 하나만 받는 것은 없다). 표시도 앱 모두와 같다.
+    f.send(post(
+        "/app/notify",
+        true,
+        &format!("csrf={CSRF}&client={second}"),
+    ))
+    .await;
+    assert_eq!(setting().as_deref(), Some("*"));
+    let v = page_json(&f, "/connections").await;
+    assert_eq!(v["snapshot"]["app"]["notify_client"], "*");
+    assert_eq!(marked(&v), ["first", "second"]);
+    assert_eq!(v["flash"]["tone"], "ok");
+
+    // 예전에 저장된 앱 하나의 ID(이 화면이 만든 것이 아니다)도 앱 모두로 읽는다.
+    f.state
+        .store()
+        .set_setting(crate::gateway::keys::NOTIFY_CLIENT, &second, Utc::now())
+        .unwrap();
+    assert_eq!(
+        crate::gateway::notify_client(&f.state.store()).as_deref(),
+        Some("*")
+    );
+    let v = page_json(&f, "/connections").await;
+    assert_eq!(v["snapshot"]["app"]["notify_client"], "*");
+    assert_eq!(marked(&v), ["first", "second"]);
+
+    // 앱 모두로 다시, 이어서 비우면 Discord DM(설정이 지워진다).
+    f.send(post("/app/notify", true, &format!("csrf={CSRF}&client=*")))
+        .await;
+    assert_eq!(setting().as_deref(), Some("*"));
+    f.send(post("/app/notify", true, &format!("csrf={CSRF}&client=")))
+        .await;
+    assert_eq!(setting(), None);
+    assert_eq!(
+        flash_text(&page_json(&f, "/connections").await),
+        "알림을 Discord DM으로 받습니다."
+    );
+    let v = page_json(&f, "/connections").await;
+    assert!(v["snapshot"]["app"]["notify_client"].is_null());
+    assert!(marked(&v).is_empty());
+
+    // 취소한 앱의 ID와 없는 ID, 앱이 아닌 기기의 ID는 거절하고 설정을 건드리지 않는다.
+    for bad in [gone.as_str(), "no-such-client", "cl-device"] {
+        f.send(post(
+            "/app/notify",
+            true,
+            &format!("csrf={CSRF}&client={bad}"),
+        ))
+        .await;
+        assert_eq!(setting(), None, "{bad}");
+        let v = page_json(&f, "/connections").await;
+        assert_eq!(flash_text(&v), "없거나 취소한 앱입니다.", "{bad}");
+        assert_eq!(v["flash"]["tone"], "bad", "{bad}");
+    }
+
+    // 취소하지 않은 앱이 없으면 앱 모두로 둘 수 없다. 앱 모두로 둔 뒤 앱을 다 취소하면 표시는 사라지고 DM으로 간다.
+    f.send(post("/app/notify", true, &format!("csrf={CSRF}&client=*")))
+        .await;
+    for id in [&first, &second] {
+        f.send(post(
+            &format!("/clients/{id}/revoke"),
+            true,
+            &format!("csrf={CSRF}"),
+        ))
+        .await;
+    }
+    let v = page_json(&f, "/connections").await;
+    assert!(v["snapshot"]["app"]["notify_client"].is_null());
+    assert!(marked(&v).is_empty());
+    f.send(post("/app/notify", true, &format!("csrf={CSRF}&client=")))
+        .await;
+    f.send(post("/app/notify", true, &format!("csrf={CSRF}&client=*")))
+        .await;
+    assert_eq!(setting(), None, "앱이 없으면 저장하지 않는다");
+    assert_eq!(
+        flash_text(&page_json(&f, "/connections").await),
+        "취소하지 않은 앱이 없습니다. 앱 토큰을 먼저 발급하세요."
+    );
+}
+
 /// 반복 루틴(결정 0025): 시스템 화면에 보이고(코드는 글 그대로 실린다), 멈추기·다시 켜기·지금 실행·지우기가 된다.
 #[tokio::test]
 async fn routines_are_listed_and_managed_from_the_automation_page() {
@@ -3352,7 +3669,7 @@ async fn setup_is_complete_once_there_is_a_place_to_talk() {
         false
     );
 
-    // 알림 받을 곳으로 고른 앱도 대화할 곳이다(Discord 없이).
+    // 알림 받을 곳으로 고른 앱(앱 모두, 결정 0067)도 대화할 곳이다(Discord 없이).
     f.send(post(
         "/clients/new",
         true,
@@ -3372,7 +3689,7 @@ async fn setup_is_complete_once_there_is_a_place_to_talk() {
     f.send(post(
         "/app/notify",
         true,
-        &form(&[("csrf", CSRF), ("client", &cid)]),
+        &form(&[("csrf", CSRF), ("client", crate::gateway::ALL_APPS)]),
     ))
     .await;
     let v = page_json(&f, "/start").await;
@@ -3385,7 +3702,7 @@ async fn setup_is_complete_once_there_is_a_place_to_talk() {
     );
     assert_eq!(
         v["snapshot"]["setup"]["steps"][3]["summary"],
-        "앱 토큰 1개 · 알림 받는 곳 앱 휴대폰 · 푸시 꺼짐"
+        "앱 토큰 1개 · 알림 받는 곳 앱 모두 · 푸시 꺼짐"
     );
     // 앱의 토큰을 취소하면 다시 끝나지 않은 것이 된다.
     f.send(post(

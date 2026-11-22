@@ -1,7 +1,6 @@
 <script lang="ts">
   import { usd } from '../lib/format';
   import type { PageData } from '../lib/types';
-  import type { Snapshot } from '../lib/types.gen';
   import {
     ActionForm,
     Badge,
@@ -46,12 +45,12 @@
   // Discord 연결 상태: 멈췄으면 그 까닭.
   const stopped = $derived(typeof d.state === 'object' ? (d.state.Stopped?.reason ?? null) : null);
 
-  type Client = Snapshot['clients'][number][0];
   // 알림 받을 곳 후보: 취소하지 않은 앱 토큰.
   const apps = $derived(s.clients.filter(([c]) => c.revoked_at === null && c.ui.is_app));
+  // 앱이 하나라도 있으면 "앱 모두"를 고를 수 있다(값은 데몬이 준다, 결정 0066). 앱 하나를 고르는 것은 없다(결정 0067).
   const notifyOptions = $derived([
     { value: '', label: 'Discord DM' },
-    ...apps.map(([c]: [Client, boolean]) => ({ value: c.id, label: `앱: ${c.name}` })),
+    ...(apps.length > 0 ? [{ value: consts.gateway.all_apps, label: '앱 모두(사람이 있는 기기에서 울림)' }] : []),
   ]);
   const gatewayOn = $derived(s.gateway_binds.length > 0);
 </script>
@@ -320,7 +319,7 @@
               {#each apps as [c, online] (c.id)}
                 <Item title={c.name} icon="link" tone={online ? 'ok' : 'muted'}>
                   {#if online}연결됨{:else}연결 안 됨{/if}
-                  {#if s.app.notify_client === c.id}{' · '}<Badge tone="info">알림 받는 곳</Badge>{/if}
+                  {#if c.ui.is_notify_target}{' · '}<Badge tone="info">알림 받는 곳</Badge>{/if}
                 </Item>
               {/each}
             </Items>

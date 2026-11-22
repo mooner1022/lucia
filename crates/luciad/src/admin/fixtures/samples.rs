@@ -1121,7 +1121,8 @@ pub(super) fn full() -> Snapshot {
         external_blocked: true,
     };
     s.app = crate::admin::snapshot::AppView {
-        notify_client: Some(q("client-a")),
+        // 앱으로 받으면 늘 앱 모두(`*`)다(결정 0067). 앱 하나의 ID가 저장돼 있어도 데몬이 `*`로 읽는다.
+        notify_client: Some(crate::gateway::ALL_APPS.into()),
         push_preview: true,
         fcm_ready: true,
         fcm_project: Some(q("fcm-project")),

@@ -250,7 +250,14 @@ pub async fn run_worker<R, C, S, F>(
                 if !engine.stopping() {
                     engine.inbox_done(&msg);
                 }
-                done
+                match done {
+                    // 오류는 말이 온 대화로 알린다(결정 0067: 데스크톱에서 한 말의 오류가 휴대폰으로만 가지 않게).
+                    Err(err) if !engine.stopping() => {
+                        engine.chat_failed(&msg, &err).await;
+                        Ok(())
+                    }
+                    other => other,
+                }
             }
             Next::Job(Job::Compact { min_tokens, reply }) => {
                 if reply.is_closed() {
@@ -803,6 +810,7 @@ mod tests {
                     received_at: Utc::now(),
                     reply_to: None,
                     venue: None,
+                    context: None,
                 }))
                 .await
                 .unwrap();
@@ -966,6 +974,7 @@ mod tests {
                 received_at: Utc::now(),
                 reply_to: None,
                 venue: None,
+                context: None,
             })
             .await
             .unwrap();
@@ -1052,6 +1061,7 @@ mod tests {
                 received_at: Utc::now(),
                 reply_to: None,
                 venue: None,
+                context: None,
             })
         };
         let summary = "Summary:\n사용자는 라떼를 좋아한다.";
@@ -1177,6 +1187,7 @@ mod tests {
             received_at: Utc::now(),
             reply_to: None,
             venue: None,
+            context: None,
         };
         in_tx.send(say("이 열 곳을 비교해 줘")).await.unwrap();
         for _ in 0..400 {
@@ -1260,6 +1271,7 @@ mod tests {
             received_at: now + chrono::Duration::seconds(secs),
             reply_to: None,
             venue: None,
+            context: None,
         };
         // 앞선 데몬: 하나는 처리하다 끊겼고, 하나는 큐에서 기다리고 있었고, 정기 작업 하나를 하던 중이었다.
         {

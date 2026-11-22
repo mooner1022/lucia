@@ -375,19 +375,23 @@ impl<R: AgentRunner, C: ChannelAdapter> Engine<R, C> {
         if let Some(details) = report.details.as_deref() {
             parts.extend(crate::segments::split(details));
         }
-        let sent = self
+        let delivered = self
             .deliver(&notify, parts, &report.attachments, Some(&run_id))
             .await?;
-        let text = crate::segments::join(&sent);
-        self.store().add_episode(&NewEpisode {
-            at: finished,
-            kind: EpisodeKind::AgentReport,
-            origin: Origin::Agent,
-            conversation: Some(notify.0.clone()),
-            session_id: Some(session.id().to_string()),
-            run_id: Some(run_id.clone()),
-            body: format!("[알림] {text}"),
-        })?;
+        let text = crate::segments::join(&delivered.sent);
+        {
+            let store = self.store();
+            let id = store.add_episode(&NewEpisode {
+                at: finished,
+                kind: EpisodeKind::AgentReport,
+                origin: Origin::Agent,
+                conversation: Some(notify.0.clone()),
+                session_id: Some(session.id().to_string()),
+                run_id: Some(run_id.clone()),
+                body: format!("[알림] {text}"),
+            })?;
+            delivered.record(&store, id, &notify, finished);
+        }
         // 반응 단추(결정 0034): 누르지 않아도 되는 작은 카드. 보낸 곳마다 한 장(한 번 누름이 다른 보낸 곳까지
         // 묶지 않게), 일정 변화는 빼고(일정 알림 전체를 끄게 되므로), 두 장까지.
         if let Some(posts) = &self.approvals {

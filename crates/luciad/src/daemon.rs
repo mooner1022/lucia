@@ -54,11 +54,12 @@ pub async fn run(cfg: Config) -> anyhow::Result<()> {
     let gateway = crate::gateway::Gateway::new(store.clone(), inbound_tx.clone(), presses_tx);
     // 앱 연동(결정 0043): 외부 노출, 파일, 명령, 푸시.
     gateway.set_public(cfg.public.proxies(), cfg.public.gateway_open());
-    gateway.set_files(Arc::new(crate::files::FileStore::new(
+    let app_files = Arc::new(crate::files::FileStore::new(
         cfg.data_dir.join("files"),
         http.clone(),
         store.clone(),
-    )));
+    ));
+    gateway.set_files(app_files.clone());
     gateway.set_commands(commands_tx);
     let app_push =
         crate::apppush::AppPush::new(gateway.clone(), store.clone(), creds.clone(), http.clone());
@@ -79,6 +80,11 @@ pub async fn run(cfg: Config) -> anyhow::Result<()> {
                     now - chrono::Duration::days(7),
                     now - chrono::Duration::days(30),
                 );
+                // 짧게 두는 파일(화면 사본 등, 결정 0066)은 한 시간 뒤 지운다.
+                let short = app_files.prune_short(now);
+                if short > 0 {
+                    tracing::info!(short, "짧게 두는 파일을 지웠다");
+                }
                 tokio::select! {
                     _ = cancel.cancelled() => return,
                     _ = tokio::time::sleep(Duration::from_secs(3600)) => {}
@@ -118,6 +124,24 @@ pub async fn run(cfg: Config) -> anyhow::Result<()> {
     gateway.set_expressions(runtime.expressions.clone());
     // Lucia의 프로필 이미지(결정 0060): 접속 API가 내주고, 바뀌면 연결된 앱에 알린다.
     gateway.set_profile(runtime.profile.clone());
+    // 책상 메모(결정 0066): 앱이 읽고 고치는 메서드를 열고, 바뀌면 연결된 앱에 알린다. Lucia의 도구도 같은 서비스다.
+    gateway.set_notes(runtime.notes.clone());
+    // 맡은 일 목록(결정 0066): 앱이 읽는 메서드를 열고, 목록이 바뀌면(10초마다 본다) 연결된 앱에 알린다.
+    gateway.start_tasks(cancel.clone());
+    // 뗀 메모(묘비)는 30일 뒤 지운다: 뜰 때 한 번, 그 뒤 6시간마다.
+    tokio::spawn({
+        let notes = runtime.notes.clone();
+        let cancel = cancel.clone();
+        async move {
+            loop {
+                notes.purge(chrono::Utc::now());
+                tokio::select! {
+                    _ = cancel.cancelled() => return,
+                    _ = tokio::time::sleep(Duration::from_secs(6 * 3600)) => {}
+                }
+            }
+        }
+    });
     // 전용 앱의 기능을 부르는 도구가 접속 API를 찾게 한다(결정 0053).
     let _ = runtime.app.set(gateway.clone());
     tokio::spawn({

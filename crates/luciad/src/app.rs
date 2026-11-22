@@ -36,6 +36,8 @@ pub struct Runtime<C> {
     pub task_notes: Option<mpsc::UnboundedReceiver<crate::tasks::TaskNote>>,
     /// 앱 이모지·스티커(결정 0045). 데몬이 접속 API와 관리 페이지에 잇는다.
     pub expressions: Arc<crate::expressions::Expressions>,
+    /// 책상 메모(결정 0066). 데몬이 접속 API에 잇는다.
+    pub notes: Arc<crate::notes::Notes>,
     /// Lucia의 프로필 이미지(결정 0060). 데몬이 접속 API에 잇는다.
     pub profile: Arc<crate::profile::Profile>,
     /// 프로필 그림을 정하고 Discord 봇 아바타에 적용하는 묶음(결정 0064). 데몬이 관리 페이지에 잇는다.
@@ -103,6 +105,8 @@ pub async fn build<C: ChannelAdapter>(
     // 앱 이모지·스티커(결정 0045): 도구·엔진·접속 API·관리 페이지가 같은 서비스를 쓴다.
     let expressions =
         crate::expressions::Expressions::new(store.clone(), cfg.data_dir.join("expressions"));
+    // 책상 메모(결정 0066): 도구와 접속 API가 같은 서비스를 쓴다.
+    let notes = crate::notes::Notes::new(store.clone());
     // Lucia의 프로필 이미지(결정 0060): 도구가 정하고, 접속 API가 앱에 내준다.
     let profile = crate::profile::Profile::new(store.clone(), cfg.data_dir.join("profile"));
     // 주 모델(결정 0055): 사용자가 고른 값이 있으면 그것을, 없으면 설정 파일 값을 쓴다.
@@ -462,6 +466,7 @@ pub async fn build<C: ChannelAdapter>(
                 .native_tools
                 .then(|| crate::workspace::Workspace::new(cfg.sandbox.workdir.clone())),
             expressions: Some(expressions.clone()),
+            notes: Some(notes.clone()),
             images: Some(images),
             app: Some(app_slot.clone()),
         },
@@ -580,6 +585,7 @@ pub async fn build<C: ChannelAdapter>(
         task_jobs: Some(task_jobs_rx),
         task_notes: Some(task_notes_rx),
         expressions,
+        notes,
         profile,
         profile_access,
         models,

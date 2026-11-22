@@ -24,6 +24,8 @@ use crate::context::escape;
 
 /// 보관 기간.
 pub const KEEP_DAYS: i64 = 30;
+/// 짧게 두는 파일(앱이 올린 화면 사본 등, 결정 0066)을 지우기까지의 시간 [제안].
+pub const SHORT_KEEP: chrono::Duration = chrono::Duration::hours(1);
 /// 보관함(결정 0052)의 상한 [제안]: 파일 수와 합계 크기.
 pub const KEEP_MAX_FILES: usize = 500;
 pub const KEEP_MAX_BYTES: u64 = 2 * 1024 * 1024 * 1024;
@@ -622,6 +624,9 @@ impl FileStore {
                 .collect()
         };
         let record = self.get(id).ok_or("그런 파일이 없다")?;
+        if self.expiry(&record.id).is_some() {
+            return Err("짧게 두는 파일(화면 사본 등)이라 보관하지 않는다".into());
+        }
         let store = self.store.lock().expect("store lock");
         let kept = store.kept_files().map_err(|e| e.to_string())?;
         let already = kept.iter().any(|k| k.file.id == record.id);
@@ -672,17 +677,70 @@ impl FileStore {
             .unwrap_or_default()
     }
 
+    /// 파일 정보. 지울 시각이 지난 짧게 두는 파일은 없는 것으로 본다(정리 전이어도).
     pub fn get(&self, id: &str) -> Option<FileRecord> {
         let id = id.trim();
         if !id.starts_with("f_") || !id[2..].chars().all(|c| c.is_ascii_hexdigit()) {
             return None;
         }
+        let store = self.store.lock().expect("store lock");
+        let record = store.file(id).ok().flatten()?;
+        match store.file_expiry(id).ok().flatten() {
+            Some(at) if at <= Utc::now() => None,
+            _ => Some(record),
+        }
+    }
+
+    /// 짧게 두는 파일로 한다(결정 0066): [`SHORT_KEEP`] 뒤에 지운다. 지우는 시각.
+    pub fn make_short(&self, id: &str, now: DateTime<Utc>) -> Result<DateTime<Utc>, String> {
+        let at = now + SHORT_KEEP;
         self.store
             .lock()
             .expect("store lock")
-            .file(id)
+            .set_file_expiry(id, at)
+            .map_err(|e| format!("저장: {e}"))?;
+        Ok(at)
+    }
+
+    /// 짧게 두는 파일이면 지우는 시각. 최근 파일 목록·보관함·답 첨부·작업 공간 내보내기에서 빠진다.
+    pub fn expiry(&self, id: &str) -> Option<DateTime<Utc>> {
+        self.store
+            .lock()
+            .expect("store lock")
+            .file_expiry(id)
             .ok()
             .flatten()
+    }
+
+    /// 지울 시각이 지난 짧게 두는 파일을 지운다(한 시간마다). 지운 수.
+    pub fn prune_short(&self, now: DateTime<Utc>) -> usize {
+        let expired = self
+            .store
+            .lock()
+            .expect("store lock")
+            .files_expired(now)
+            .unwrap_or_default();
+        self.remove_all(expired)
+    }
+
+    fn remove_all(&self, list: Vec<FileRecord>) -> usize {
+        let mut removed = 0;
+        for f in list {
+            let path = self.path(&f);
+            if path.starts_with(&self.dir) {
+                let _ = std::fs::remove_file(&path);
+            }
+            if self
+                .store
+                .lock()
+                .expect("store lock")
+                .delete_file(&f.id)
+                .is_ok()
+            {
+                removed += 1;
+            }
+        }
+        removed
     }
 
     pub fn path(&self, f: &FileRecord) -> PathBuf {
@@ -712,23 +770,7 @@ impl FileStore {
             .expect("store lock")
             .files_older_than(now - chrono::Duration::days(KEEP_DAYS))
             .unwrap_or_default();
-        let mut removed = 0;
-        for f in old {
-            let path = self.path(&f);
-            if path.starts_with(&self.dir) {
-                let _ = std::fs::remove_file(&path);
-            }
-            if self
-                .store
-                .lock()
-                .expect("store lock")
-                .delete_file(&f.id)
-                .is_ok()
-            {
-                removed += 1;
-            }
-        }
-        removed
+        self.remove_all(old) + self.prune_short(now)
     }
 
     /// 모델에게 보일 첨부 설명(요청 글에 붙인다)과 내용 블록(이미지·PDF).

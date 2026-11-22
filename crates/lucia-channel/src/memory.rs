@@ -272,6 +272,7 @@ impl MemoryHandle {
                 received_at: Utc::now(),
                 reply_to: None,
                 venue: None,
+                context: None,
             })
             .await
             .map_err(|_| ChannelError::Closed)
@@ -295,6 +296,7 @@ impl MemoryHandle {
                 received_at: Utc::now(),
                 reply_to: None,
                 venue: None,
+                context: None,
             })
             .await
             .map_err(|_| ChannelError::Closed)

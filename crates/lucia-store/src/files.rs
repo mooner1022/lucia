@@ -90,10 +90,11 @@ impl Store {
             .transpose()
     }
 
-    /// 최근 파일(새것부터).
+    /// 최근 파일(새것부터). 짧게 두는 파일(결정 0066)은 빠진다(id를 아는 실행만 본다).
     pub fn recent_files(&self, limit: usize) -> Result<Vec<FileRecord>> {
         let mut stmt = self.conn.prepare(&format!(
-            "SELECT {COLUMNS} FROM files ORDER BY created_at DESC, id DESC LIMIT ?1"
+            "SELECT {COLUMNS} FROM files WHERE expires_at IS NULL \
+             ORDER BY created_at DESC, id DESC LIMIT ?1"
         ))?;
         let rows = stmt.query_map([limit as i64], row)?;
         rows.map(|r| finish(r?)).collect()
@@ -174,8 +175,57 @@ impl Store {
     pub fn delete_file(&self, id: &str) -> Result<()> {
         self.conn
             .execute("DELETE FROM kept_files WHERE file_id = ?1", [id])?;
+        self.conn
+            .execute("DELETE FROM file_grants WHERE file_id = ?1", [id])?;
         self.conn.execute("DELETE FROM files WHERE id = ?1", [id])?;
         Ok(())
+    }
+
+    /// 짧게 두는 파일로 표시한다(결정 0066): 이 시각에 지운다.
+    pub fn set_file_expiry(&self, id: &str, expires_at: DateTime<Utc>) -> Result<()> {
+        self.conn.execute(
+            "UPDATE files SET expires_at = ?2 WHERE id = ?1",
+            params![id, ts(expires_at)],
+        )?;
+        Ok(())
+    }
+
+    /// 짧게 두는 파일이면 지우는 시각.
+    pub fn file_expiry(&self, id: &str) -> Result<Option<DateTime<Utc>>> {
+        let at: Option<Option<String>> = self
+            .conn
+            .query_row("SELECT expires_at FROM files WHERE id = ?1", [id], |r| {
+                r.get(0)
+            })
+            .optional()?;
+        at.flatten().map(|a| parse_ts(&a)).transpose()
+    }
+
+    /// 지울 시각이 지난 짧게 두는 파일(보관함과 상관없이).
+    pub fn files_expired(&self, now: DateTime<Utc>) -> Result<Vec<FileRecord>> {
+        let mut stmt = self.conn.prepare(&format!(
+            "SELECT {COLUMNS} FROM files WHERE expires_at IS NOT NULL AND expires_at <= ?1 ORDER BY expires_at"
+        ))?;
+        let rows = stmt.query_map([ts(now)], row)?;
+        rows.map(|r| finish(r?)).collect()
+    }
+
+    /// 이 대화가 이 파일을 받을 수 있게 한다(그 대화로 보낸 파일, 결정 0066).
+    pub fn grant_file(&self, id: &str, conversation: &str, now: DateTime<Utc>) -> Result<()> {
+        self.conn.execute(
+            "INSERT OR IGNORE INTO file_grants (file_id, conversation, created_at) VALUES (?1, ?2, ?3)",
+            params![id, conversation, ts(now)],
+        )?;
+        Ok(())
+    }
+
+    /// 이 파일을 받을 수 있는 대화(파일 자신의 대화는 빼고, 보낸 곳만).
+    pub fn file_grants(&self, id: &str) -> Result<Vec<String>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT conversation FROM file_grants WHERE file_id = ?1 ORDER BY conversation",
+        )?;
+        let rows = stmt.query_map([id], |r| r.get::<_, String>(0))?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 }
 

@@ -51,6 +51,8 @@ pub struct RunCtx {
     pub goal: Option<String>,
     /// 목표 점검이다: 그 목표의 하위 루틴·후속 조치를 만들고 고칠 수 있다(범위는 넓어지지 않는다).
     pub goal_review: bool,
+    /// 사용자가 말해서 돈 대화 실행이면 그 대화(결정 0066): 앱 기능의 `when: "here"`는 그 앱의 대화일 때만 부른다.
+    pub chat: Option<String>,
 }
 
 /// 실행 ID → 맥락, 그리고 넣은 순서(오래된 것부터 버리려고).

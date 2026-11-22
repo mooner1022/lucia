@@ -264,11 +264,8 @@ fn app_summary(s: &Snapshot) -> String {
         .filter(|(c, _)| c.revoked_at.is_none() && c.role == crate::gateway::Role::App.as_str())
         .count();
     let notify = match &s.app.notify_client {
-        Some(id) => s
-            .clients
-            .iter()
-            .find(|(c, _)| &c.id == id)
-            .map_or("앱".to_owned(), |(c, _)| format!("앱 {}", c.name)),
+        // 앱으로 받으면 늘 앱 모두다(결정 0067).
+        Some(_) => "앱 모두".to_owned(),
         None => "Discord DM".to_owned(),
     };
     let push = if s.app.fcm_ready { "켜짐" } else { "꺼짐" };

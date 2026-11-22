@@ -45,6 +45,20 @@ pub struct Inbound {
     pub reply_to: Option<Quoted>,
     /// 여러 사람이 보는 곳(서버 채널)에서 왔으면 그 곳(결정 0024). 1:1 대화면 `None`.
     pub venue: Option<Venue>,
+    /// 말과 따로 준 맥락(결정 0066, 앱의 `message.context`): 사용자가 고른 글 등. 사람의 말이 아니라 외부 자료다.
+    #[serde(default)]
+    pub context: Option<MessageContext>,
+}
+
+/// 말에 붙인 맥락(결정 0066). 남이 쓴 글일 수 있어 외부 자료로 다룬다.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MessageContext {
+    /// 사용자가 고른 글.
+    pub selection: String,
+    /// 고른 곳(프로그램 이름). 사용자가 "지금 하는 일"을 내준 경우에만.
+    pub source_app: Option<String>,
+    /// 고른 곳의 창 제목.
+    pub source_title: Option<String>,
 }
 
 impl Inbound {
@@ -65,6 +79,7 @@ impl Inbound {
             received_at,
             reply_to: None,
             venue: None,
+            context: None,
         }
     }
 }
@@ -104,6 +119,8 @@ pub struct Venue {
 pub struct OutFile {
     pub name: String,
     pub bytes: Vec<u8>,
+    /// 데몬 파일 보관소의 ID(있으면, 결정 0066). 앱 채널은 사본을 만들지 않고 이 ID로 알린다.
+    pub id: Option<String>,
 }
 
 /// 나가는 메시지. 데몬만 만든다(에이전트의 자유 텍스트를 그대로 흘리지 않는다).

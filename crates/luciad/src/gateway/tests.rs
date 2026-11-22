@@ -4,6 +4,9 @@ use lucia_channel::contract::{self, ContractHarness};
 use lucia_core::{CardButton, CardField, ConversationId};
 use tokio_tungstenite::tungstenite::Message as WsMessage;
 
+mod desk;
+mod shared;
+
 fn store() -> Arc<Mutex<Store>> {
     Arc::new(Mutex::new(Store::open_in_memory().unwrap()))
 }
@@ -25,6 +28,11 @@ fn gateway(
         store,
     )));
     (gw, irx, prx)
+}
+
+/// 앱 기능을 부르는 쪽(사람이 대화 중인가만).
+fn caller(human: bool) -> AppCaller<'static> {
+    AppCaller { human, chat: None }
 }
 
 fn issue(store: &Arc<Mutex<Store>>, id: &str, role: &str) -> String {
@@ -92,7 +100,10 @@ impl ContractHarness for Harness {
 
 #[tokio::test]
 async fn gateway_passes_the_outbound_contract() {
-    let (gw, _irx, _prx) = gateway(store());
+    // 앱 대화는 하나라(결정 0067) 상자에 등록된 앱이 있어야 어느 앱 대화로든 보낼 수 있다.
+    let st = store();
+    issue(&st, "cl-1", "app");
+    let (gw, _irx, _prx) = gateway(st);
     let (_, rx) = gw.attach("cl-1");
     let mut h = Harness {
         gw: gw.clone(),
@@ -149,6 +160,8 @@ async fn router_sends_app_conversations_to_the_app_and_falls_back_when_offline()
             Utc::now(),
         )
         .unwrap();
+    // 앱 대화는 하나라(결정 0067) 앱은 상자에 등록돼 있어야 한다.
+    issue(&st, "cl-1", "app");
     let (gw, _irx, _prx) = gateway(st.clone());
     let (itx, _irx2) = mpsc::channel(4);
     let (ptx, _prx2) = mpsc::channel(4);
@@ -188,7 +201,8 @@ async fn router_sends_app_conversations_to_the_app_and_falls_back_when_offline()
         .unwrap();
     assert_eq!(handle.take_sent().len(), 1);
 
-    // 연결이 끊긴 앱: 알림 대화로 돌린다(글이 사라지지 않게).
+    // 닿는 앱이 하나도 없다(앱 하나뿐인데 끊겼고 푸시도 없다): 알림 대화로 돌린다(글이 사라지지 않게).
+    // 다른 앱이 닿는 경우는 `shared::router_*`가 본다(결정 0067).
     gw.disconnect("cl-1");
     router
         .send(Outbound::Text {
@@ -329,7 +343,8 @@ async fn app_chats_and_presses_over_websocket() {
     assert_eq!(c["type"], "card");
     assert_eq!(c["ref"], r.as_str());
 
-    // 버튼: 자기 카드만, 값은 비밀로.
+    // 버튼: 값은 비밀로. 앱 대화는 하나라(결정 0067) 다른 앱 대화의 카드(`app:cl-2:…`)도 눌러서 넘어간다
+    // (누를 수 있는가는 승인 쪽이 카드 참조로 따로 본다). 앱 대화가 아닌 곳의 참조만 `bad_ref`다.
     say(
         &mut ws,
         json!({"type": "press", "ref": r, "action": "approve:1", "input": "123456"}),
@@ -343,6 +358,17 @@ async fn app_chats_and_presses_over_websocket() {
     say(
         &mut ws,
         json!({"type": "press", "ref": "app:cl-2:x", "action": "approve:1"}),
+    )
+    .await;
+    let other = prx.recv().await.unwrap();
+    assert_eq!(
+        (other.sender.as_str(), other.message_ref.as_str()),
+        ("cl-1", "app:cl-2:x"),
+        "다른 앱 대화의 카드도 넘어간다"
+    );
+    say(
+        &mut ws,
+        json!({"type": "press", "ref": "discord:123:x", "action": "approve:1"}),
     )
     .await;
     assert_eq!(hear(&mut ws).await["code"], "bad_ref");
@@ -449,9 +475,10 @@ async fn a_new_connection_replaces_the_old_one() {
     ));
 }
 
-/// 반쯤 죽은 연결: 퐁이 오지 않으면 끊고, 그 앱으로 갈 글은 알림 대화로 간다. 살아 있는 연결은 그대로다.
+/// 반쯤 죽은 연결: 퐁이 오지 않으면 끊는다. 앱 대화는 하나라(결정 0067) 끊긴 앱의 대화로 갈 글도 다른 앱이 닿으면
+/// 그 앱으로 가고, 닿는 앱이 하나도 없을 때만 알림 대화로 돌린다. 살아 있는 연결은 그대로다.
 #[tokio::test]
-async fn silent_connections_are_dropped_and_messages_fall_back() {
+async fn silent_connections_are_dropped_and_messages_go_to_the_other_app_or_fall_back() {
     let st = store();
     st.lock()
         .unwrap()
@@ -490,7 +517,8 @@ async fn silent_connections_are_dropped_and_messages_fall_back() {
     assert!(gw.online("cl-2"), "퐁을 보내는 연결은 그대로");
 
     let (primary, handle) = lucia_channel::memory::MemoryChannel::new(2000, itx);
-    let router = RouterChannel::new(Arc::new(primary), gw.clone(), st, None);
+    let router = RouterChannel::new(Arc::new(primary), gw.clone(), st.clone(), None);
+    // 끊긴 앱의 대화로 가는 글: 닿는 앱(cl-2)이 있으니 앱으로 간다(알림 대화로 돌리지 않는다).
     router
         .send(Outbound::Text {
             conversation: conversation("cl-1"),
@@ -498,11 +526,35 @@ async fn silent_connections_are_dropped_and_messages_fall_back() {
         })
         .await
         .unwrap();
+    assert!(
+        handle.take_sent().is_empty(),
+        "다른 앱이 닿으면 DM으로 돌리지 않는다"
+    );
+    let alive_box = desk::boxed(&st, "cl-2");
+    assert_eq!(alive_box.len(), 1);
+    assert_eq!(alive_box[0]["body"], "늦은 답");
+    assert_eq!(alive_box[0]["conversation"], "app:cl-1");
+
+    // 남은 앱도 끊기면(읽던 쪽이 사라졌다) 닿는 앱이 없으니 알림 대화로.
+    reader.abort();
+    for _ in 0..200 {
+        if !gw.online("cl-2") {
+            break;
+        }
+        tokio::time::sleep(Duration::from_millis(10)).await;
+    }
+    assert!(!gw.online("cl-2"));
+    router
+        .send(Outbound::Text {
+            conversation: conversation("cl-1"),
+            body: "아무도 없을 때".into(),
+        })
+        .await
+        .unwrap();
     assert_eq!(
         handle.take_sent(),
-        vec![(ConversationId("memory:dm".into()), "늦은 답".into())]
+        vec![(ConversationId("memory:dm".into()), "아무도 없을 때".into())]
     );
-    reader.abort();
     drop(dead);
 }
 
@@ -1093,15 +1145,37 @@ async fn files_go_up_and_down_over_http_with_the_token() {
     let up: Value = serde_json::from_slice(&body).unwrap();
     let fid = up["id"].as_str().unwrap().to_owned();
     assert_eq!(up["name"], "메모.txt");
-    // 다른 앱은 그 파일을 말에 붙이거나 받지 못한다.
-    let (s, _, _) = call(req(
+    // 다른 앱은 그 파일을 말에 붙이지는 못하지만, 앱 대화는 하나라(결정 0067) 받을 수는 있다.
+    let (s, body, _) = call(req(
         "GET",
         &format!("/v1/files/{fid}"),
         Some(&other),
         vec![],
     ))
     .await;
-    assert_eq!(s, 404);
+    assert_eq!((s, body.as_slice()), (200, "안녕 파일".as_bytes()));
+    // 다른 앱이 짧게 둔 파일(`keep=short`)은 그 앱만 받는다: 화면 사본이라 타임라인에 나오지 않는다.
+    let (s, body, _) = call(req(
+        "POST",
+        "/v1/files?name=screen.png&keep=short",
+        Some(&token),
+        b"\x89PNG\r\n\x1a\nxx".to_vec(),
+    ))
+    .await;
+    assert_eq!(s, 201, "{}", String::from_utf8_lossy(&body));
+    let short: Value = serde_json::from_slice(&body).unwrap();
+    let short_id = short["id"].as_str().unwrap();
+    assert!(short["expires_at"].is_string());
+    for (tok, want) in [(&token, 200), (&other, 404)] {
+        let (s, _, _) = call(req(
+            "GET",
+            &format!("/v1/files/{short_id}"),
+            Some(tok),
+            vec![],
+        ))
+        .await;
+        assert_eq!(s, want);
+    }
     let conv = conversation("cl-1");
     let atts = attachments(&gw, &conversation("cl-2"), std::slice::from_ref(&fid));
     assert!(atts.is_err());
@@ -1122,6 +1196,7 @@ async fn files_go_up_and_down_over_http_with_the_token() {
         files: vec![lucia_core::OutFile {
             name: "정리.md".into(),
             bytes: b"# hi".to_vec(),
+            id: None,
         }],
     })
     .await
@@ -1225,7 +1300,7 @@ async fn proxied_requests_need_a_public_url_and_count_failures_by_real_address()
 }
 
 #[tokio::test]
-async fn notify_target_app_gets_owner_notices_and_pushes_when_away() {
+async fn notify_target_apps_get_owner_notices_and_push_when_away() {
     let st = store();
     let (gw, _irx, _prx) = gateway(st.clone());
     issue(&st, "cl-1", "app");
@@ -1239,7 +1314,8 @@ async fn notify_target_app_gets_owner_notices_and_pushes_when_away() {
         .unwrap()
         .set_setting(lucia_store::keys::NOTIFY_CONVERSATION, &dm.0, Utc::now())
         .unwrap();
-    // 알릴 곳: 앱을 정하지 않았으면 DM, 정하면 앱 대화(용도로 가른다).
+    // 알릴 곳: 앱을 정하지 않았으면 DM, 정하면 앱 대화(용도로 가른다). 앱 하나를 고르는 것은 없다(결정 0067): 예전에
+    // 앱 하나로 저장한 값(`cl-1`)도 앱 모두(`app:*`)로 읽는다.
     assert_eq!(
         st.lock().unwrap().notify_conversation().as_deref(),
         Some("memory:dm")
@@ -1248,8 +1324,12 @@ async fn notify_target_app_gets_owner_notices_and_pushes_when_away() {
         .unwrap()
         .set_setting(keys::NOTIFY_CLIENT, "cl-1", Utc::now())
         .unwrap();
+    assert_eq!(
+        notify_client(&st.lock().unwrap()).as_deref(),
+        Some(ALL_APPS)
+    );
     let target = ConversationId(st.lock().unwrap().notify_conversation().unwrap());
-    assert_eq!(target, conversation("cl-1"));
+    assert_eq!(target, conversation(ALL_APPS));
     let text = |to: &ConversationId, body: &str| Outbound::Text {
         conversation: to.clone(),
         body: body.into(),
@@ -1265,7 +1345,7 @@ async fn notify_target_app_gets_owner_notices_and_pushes_when_away() {
     assert_eq!(take()[0].1, "DM 대화의 답");
     assert!(rx.try_recv().is_err());
     let r = router.send_card(card(target.clone())).await.unwrap();
-    assert!(r.starts_with("app:cl-1:"));
+    assert!(r.starts_with("app:*:"), "{r}");
     assert_eq!(rx.try_recv().unwrap()["type"], "card");
     // 뒤로 가 있으면 연결돼 있어도 푸시로 깨운다(진행 안내는 깨우지 않는다).
     gw.set_push_ready(true);
@@ -1274,7 +1354,7 @@ async fn notify_target_app_gets_owner_notices_and_pushes_when_away() {
         .set_client_push("cl-1", Some("tok"), Some("android"), Utc::now())
         .unwrap();
     let conn = gw.conns.lock().unwrap().get("cl-1").unwrap().id;
-    gw.set_background("cl-1", conn, true);
+    gw.set_presence("cl-1", conn, Presence::Background);
     router.send(text(&target, "셋")).await.unwrap();
     let job = push_rx.try_recv().unwrap();
     assert_eq!(
@@ -1292,7 +1372,7 @@ async fn notify_target_app_gets_owner_notices_and_pushes_when_away() {
     // 끊겨도 푸시가 있으면 앱으로(상자에 쌓고 깨운다). 카드는 높은 우선순위, DM과 겹치지 않는다.
     gw.disconnect("cl-1");
     let r = router.send_card(card(target.clone())).await.unwrap();
-    assert!(r.starts_with("app:cl-1:"));
+    assert!(r.starts_with("app:*:"), "{r}");
     let job = push_rx.try_recv().unwrap();
     assert!(job.high && job.kind == "card");
     assert!(
@@ -1628,7 +1708,7 @@ async fn app_offers_tools_and_lucia_calls_them_when_the_owner_allows() {
     // 범위가 없으면 Lucia에게 보이지도, 불리지도 않는다.
     assert!(gw.app_tools().is_empty());
     assert_eq!(
-        gw.call_app("location.get", json!({}), None, true)
+        gw.call_app("location.get", json!({}), None, caller(true))
             .await
             .unwrap_err()
             .code,
@@ -1654,8 +1734,13 @@ async fn app_offers_tools_and_lucia_calls_them_when_the_owner_allows() {
     // 부르기: invoke 프레임이 가고, 앱의 답이 돌아온다.
     let gw2 = gw.clone();
     let task = tokio::spawn(async move {
-        gw2.call_app("location.get", json!({"precise": true}), None, false)
-            .await
+        gw2.call_app(
+            "location.get",
+            json!({"precise": true}),
+            None,
+            caller(false),
+        )
+        .await
     });
     let ask = hear(&mut ws).await;
     assert_eq!(
@@ -1671,14 +1756,16 @@ async fn app_offers_tools_and_lucia_calls_them_when_the_owner_allows() {
         json!({"type": "result", "id": ask["id"], "ok": true, "data": {"lat": 37.5, "lng": 127.0}}),
     )
     .await;
-    let (app, data) = task.await.unwrap().unwrap();
+    let AppCall::Done(reply) = task.await.unwrap().unwrap() else {
+        panic!("답이 왔다")
+    };
     assert_eq!(
-        (app.as_str(), data["lat"].as_f64()),
+        (reply.app.as_str(), reply.data["lat"].as_f64()),
         ("시험 앱", Some(37.5))
     );
     // 무엇을 바꾸는 기능은 사람이 대화 중일 때만.
     assert_eq!(
-        gw.call_app("alarm.set", json!({}), None, false)
+        gw.call_app("alarm.set", json!({}), None, caller(false))
             .await
             .unwrap_err()
             .code,
@@ -1686,7 +1773,10 @@ async fn app_offers_tools_and_lucia_calls_them_when_the_owner_allows() {
     );
     // 앱이 거절하면 그 까닭이 온다. 다른 앱을 짚으면 없다고 한다.
     let gw3 = gw.clone();
-    let task = tokio::spawn(async move { gw3.call_app("alarm.set", json!({}), None, true).await });
+    let task = tokio::spawn(async move {
+        gw3.call_app("alarm.set", json!({}), None, caller(true))
+            .await
+    });
     let ask = hear(&mut ws).await;
     say(
         &mut ws,
@@ -1699,7 +1789,7 @@ async fn app_offers_tools_and_lucia_calls_them_when_the_owner_allows() {
         ("denied", "사용자가 거절")
     );
     assert_eq!(
-        gw.call_app("location.get", json!({}), Some("cl-other"), true)
+        gw.call_app("location.get", json!({}), Some("cl-other"), caller(true))
             .await
             .unwrap_err()
             .code,
@@ -2170,14 +2260,23 @@ async fn form_press_inputs_are_bounded_and_nothing_bad_is_forwarded() {
     // 연결은 살아 있고 다음 누름은 받는다.
     say(&mut ws, press(json!({"username": "ok"}))).await;
     assert!(prx.recv().await.unwrap().fields.is_some());
-    // 남의 카드에 칸 값을 실어도 그대로 거절한다.
+    // 앱 대화가 아닌 곳의 카드에 칸 값을 실어도 그대로 거절한다(앱 대화의 카드는 어느 앱에서나 누른다, 결정 0067).
+    say(
+        &mut ws,
+        json!({"type": "press", "ref": "discord:123:x", "action": "approve:1", "inputs": {"a": "b"}}),
+    )
+    .await;
+    assert_eq!(hear(&mut ws).await["code"], "bad_ref");
+    assert!(prx.try_recv().is_err());
+    // 다른 앱 대화의 카드는 칸 값도 같은 한도로 받아 넘긴다.
     say(
         &mut ws,
         json!({"type": "press", "ref": "app:cl-2:x", "action": "approve:1", "inputs": {"a": "b"}}),
     )
     .await;
-    assert_eq!(hear(&mut ws).await["code"], "bad_ref");
-    assert!(prx.try_recv().is_err());
+    let other = prx.recv().await.unwrap();
+    assert_eq!(other.message_ref, "app:cl-2:x");
+    assert_eq!(other.fields.unwrap()["a"].expose(), "b");
 }
 
 // ---------- 결정 0063: 브라우저 화면 넘겨받기 ----------

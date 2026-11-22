@@ -136,7 +136,7 @@ impl Category {
     pub fn about(self) -> &'static str {
         match self {
             Self::Memory => {
-                "사용자에 대한 오래 갈 사실·선호·진행 중인 일 항목을 찾고 읽고 고치고 지운다"
+                "사용자에 대한 오래 갈 사실·선호·진행 중인 일 항목을 찾고 읽고 고치고 지운다, 사용자 앱의 책상 메모(스티커 메모) 보기·붙이기·고치기·떼기(note_*)"
             }
             Self::Google => {
                 "Gmail 메일 검색·읽기, 메일 발송 요청(승인 카드), 보내는 주소 확인, Google 캘린더 일정"
@@ -249,6 +249,13 @@ pub const TOOLS: &[ToolSpec] = &[
     featured(tool("memory_read", Memory, Read, false, MEM)),
     featured(tool("memory_write", Memory, LocalWrite, false, MEM)),
     tool("memory_delete", Memory, LocalWrite, true, MEM),
+    // 책상 메모(결정 0066): 사용자의 앱에 붙는 스티커 메모. 앱이 꺼져 있어도 된다. 읽기는 사람 없는 실행(브리핑)도
+    // 한다. 쓰기는 `memory_write`와 같은 등급(로컬 쓰기, 사람 없어도 됨)이고, 글은 사용자가 앱에서 바로 본다.
+    tool("note_list", Memory, Read, false, MEM),
+    tool("note_add", Memory, LocalWrite, false, MEM),
+    tool("note_update", Memory, LocalWrite, false, MEM),
+    // 떼기는 기억 지우기처럼 사람이 대화 중일 때만(사람 없는 실행이 사용자의 메모를 떼지 않게).
+    tool("note_remove", Memory, LocalWrite, true, MEM),
     featured(tool("mail_search", Google, Read, false, GGL)),
     tool("mail_read", Google, Read, false, GGL),
     tool("mail_aliases", Google, Read, false, GGL),
@@ -277,6 +284,8 @@ pub const TOOLS: &[ToolSpec] = &[
     // 전용 앱의 기능(결정 0053): 앱이 내준 것을 보고 부른다. 무엇을 바꾸는 기능은 도구 안에서 사람이 있는지 본다.
     tool("app_tools", App, Read, false, FIL),
     tool("app_call", App, Read, false, FIL),
+    // 앱이 늦게 답하는 부탁의 결과(결정 0066: 사용자에게 묻는 동작은 MCP 요청 한도보다 길다).
+    tool("app_result", App, Read, false, FIL),
     // 앱 이모지·스티커(결정 0045): 이름·설명이 뒤의 요청에 다시 실리므로 등록·지우기는 사람이 대화 중일 때만.
     tool("expression_add", Files, LocalWrite, true, FIL),
     tool("expression_list", Files, Read, false, FIL),

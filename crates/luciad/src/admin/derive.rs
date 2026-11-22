@@ -405,14 +405,19 @@ pub(super) fn skill_revision_ui(r: &lucia_store::SkillRevision) -> Value {
 
 /// 연결: 접속 API 클라이언트와 이미지 생성 요청.
 fn decorate_connections(snap: &mut Value, s: &Snapshot) {
+    let notify = s.app.notify_client.as_deref();
     each_first(snap, "/clients", &s.clients, |c| {
         let scope_labels: Vec<String> = c.scopes.iter().map(|sc| scope_label(sc)).collect();
+        let is_app = c.role == Role::App.as_str();
         json!({
             "role_label": Role::parse(&c.role).map(|r| r.label()).unwrap_or("?"),
-            "is_app": c.role == Role::App.as_str(),
+            "is_app": is_app,
+            // 알림 받는 곳 배지(결정 0066·0067): 알림을 앱으로 받으면 취소하지 않은 앱 모두.
+            "is_notify_target": is_app && c.revoked_at.is_none() && notify.is_some(),
             "has_security_mode": c.scopes.iter().any(|x| x == crate::gateway::scopes::SECURITY_MODE),
             "has_app_tools": c.scopes.iter().any(|x| x == crate::gateway::scopes::APP_TOOLS),
             "has_browser_handover": c.scopes.iter().any(|x| x == crate::gateway::scopes::BROWSER_HANDOVER),
+            "has_owner_files": c.scopes.iter().any(|x| x == crate::gateway::scopes::OWNER_FILES),
             "scope_labels": scope_labels,
             // 푸시 등록 토큰 자체는 내보내지 않는다. 있는지만 알린다("시험 푸시" 단추).
             "has_push_token": c.push_token.is_some(),
@@ -677,6 +682,9 @@ fn gateway_table() -> Value {
         "scope_security_mode": crate::gateway::scopes::SECURITY_MODE,
         "scope_app_tools": crate::gateway::scopes::APP_TOOLS,
         "scope_browser_handover": crate::gateway::scopes::BROWSER_HANDOVER,
+        "scope_owner_files": crate::gateway::scopes::OWNER_FILES,
+        // 알림 받을 곳 고르기의 "앱 모두" 값(결정 0066).
+        "all_apps": crate::gateway::ALL_APPS,
     })
 }
 

@@ -272,12 +272,15 @@
 | `snapshot.clients[i][0].ui.has_security_mode` | `boolean`. "권한 모드 바꾸기" 범위가 있나(범위 폼의 체크 상자 `scope_security_mode`) | `view/connections.rs:217` `c.scopes.iter().any(\|x\| x == scopes::SECURITY_MODE)` |
 | `snapshot.clients[i][0].ui.has_app_tools` | `boolean`. "앱 기능 부르기" 범위가 있나(`scope_app_tools`) | `view/connections.rs:218` `… == scopes::APP_TOOLS` |
 | `snapshot.clients[i][0].ui.has_browser_handover` | `boolean`. "브라우저 화면 넘겨받기" 범위가 있나(범위 폼과 발급 폼의 체크 상자 `scope_browser_handover`, 결정 0063) | 새 값(예전 화면 코드에 없다). `admin/derive.rs` `decorate_connections`: `… == scopes::BROWSER_HANDOVER` |
-| `snapshot.clients[i][0].ui.scope_labels` | `string[]`. `scopes`와 같은 순서의 이름("권한 모드 바꾸기(/권한)", "Lucia가 앱 기능 부르기", "브라우저 화면 넘겨받기"; 모르는 범위는 이름 그대로). `scopes`가 비면 `[]`이고 그때는 "기본(대화·카드·기록·파일·푸시)"를 적는다 | `view/connections.rs:187-192,236` `scope_label(sc)` |
+| `snapshot.clients[i][0].ui.has_owner_files` | `boolean`. "Discord DM의 파일 받기" 범위가 있나(범위 폼과 발급 폼의 체크 상자 `scope_owner_files`, 결정 0066·0067: 다른 앱 대화의 파일은 범위 없이 받는다) | 새 값(예전 화면 코드에 없다). `admin/derive.rs` `decorate_connections`: `… == scopes::OWNER_FILES` |
+| `snapshot.clients[i][0].ui.is_notify_target` | `boolean`. "알림 받는 곳" 배지를 붙일 앱인가: 취소하지 않은 앱이고, 알림을 앱으로 받을 때(결정 0066·0067: 앱 하나만 고르는 것은 없어 취소하지 않은 앱 모두에 붙는다). 화면은 `snapshot.app.notify_client`를 `c.id`와 견주지 않고 이 값을 쓴다 | 새 값. `admin/derive.rs` `decorate_connections`(예전 화면의 `notify_client == c.id`를 대신한다) |
+| `snapshot.clients[i][0].ui.scope_labels` | `string[]`. `scopes`와 같은 순서의 이름("권한 모드 바꾸기(/권한)", "Lucia가 앱 기능 부르기", "브라우저 화면 넘겨받기", "Discord DM의 파일 받기"; 모르는 범위는 이름 그대로). `scopes`가 비면 `[]`이고 그때는 "기본(대화·카드·기록·파일·푸시)"를 적는다 | `view/connections.rs:187-192,236` `scope_label(sc)` |
 | `snapshot.clients[i][0].ui.has_push_token` | `boolean`. 푸시 등록 토큰이 있나(토큰 자체는 JSON에 없다). "시험 푸시" 단추는 `snapshot.app.fcm_ready`이고 이 값이 참일 때만 | `view/connections.rs:249` `c.push_token.is_some()` |
 | `consts.gateway.roles[]` | `{ key, label }[]`. `"app"` "앱", `"device"` "기기" | `view/connections.rs:222` `Role::label` |
 | `consts.gateway.app_role` | `string`. 앱 역할의 `key`(`"app"`) | `view/connections.rs:216,281` `Role::App.as_str()` |
-| `consts.gateway.scopes[]` | `{ key, label }[]`. 범위 이름표(`"security_mode"`, `"app_tools"`, `"browser_handover"`) | `view/connections.rs:188` `crate::gateway::scopes::ALL` |
-| `consts.gateway.scope_security_mode`, `.scope_app_tools`, `.scope_browser_handover` | `string`. 세 범위의 `key` | `view/connections.rs:217-218` `scopes::SECURITY_MODE`, `scopes::APP_TOOLS`. `scope_browser_handover`는 새 값(`admin/derive.rs` `gateway_table`, 결정 0063) |
+| `consts.gateway.scopes[]` | `{ key, label }[]`. 범위 이름표(`"security_mode"`, `"app_tools"`, `"browser_handover"`, `"owner_files"`) | `view/connections.rs:188` `crate::gateway::scopes::ALL` |
+| `consts.gateway.scope_security_mode`, `.scope_app_tools`, `.scope_browser_handover`, `.scope_owner_files` | `string`. 네 범위의 `key` | `view/connections.rs:217-218` `scopes::SECURITY_MODE`, `scopes::APP_TOOLS`. `scope_browser_handover`는 새 값(`admin/derive.rs` `gateway_table`, 결정 0063), `scope_owner_files`도 새 값(결정 0066) |
+| `consts.gateway.all_apps` | `string`. 알림 받을 곳 고르기(`/app/notify`의 `client`)의 "앱 모두" 값(`"*"`). 선택지는 Discord DM(빈 값)과 이것 둘뿐이고(앱 하나를 고르는 선택지는 결정 0067에서 없앴다), 이것은 앱이 하나라도 있을 때만 보인다. `snapshot.app.notify_client`는 앱으로 받으면 늘 이 값이고 Discord DM이면 `null`이다(저장된 값이 예전의 앱 ID여도 데몬이 이 값으로 읽는다) | 새 값(`admin/derive.rs` `gateway_table`, `crate::gateway::ALL_APPS`, 결정 0066) |
 
 ### 이미지 생성
 
@@ -420,7 +423,7 @@
 | `snapshot.setup.steps[]` | `{ key, title, icon, state, state_label, tone, summary }[]`, 순서대로 `profile`(이름과 모습) · `discord` · `google` · `app`(앱과 푸시) · `images` · `env`(환경). 구역의 `id`는 `key`다 |
 | `steps[i].state` | `"done" \| "todo" \| "optional"`. `done`: 끝남. `todo`: 대화할 곳이 아직 없을 때 그 길이 될 수 있는 단계(`discord`, `app`). `optional`: 그 밖. 환경은 점검이 모두 정상이면 `done` |
 | `steps[i].state_label`, `.tone` | 배지의 글("완료", "필요", "선택")과 결(`ok`, `warn`, `muted`) |
-| `steps[i].summary` | `string`. 데몬이 계산한 한 줄 요약("봇 … 연결됨 · 소유자 설정됨", "앱 토큰 1개 · 알림 받는 곳 앱 … · 푸시 꺼짐", "점검 5개 모두 정상입니다." …). 화면은 그대로 적는다 |
+| `steps[i].summary` | `string`. 데몬이 계산한 한 줄 요약("봇 … 연결됨 · 소유자 설정됨", "앱 토큰 1개 · 알림 받는 곳 앱 모두 · 푸시 꺼짐"(알림을 앱으로 받으면 늘 "앱 모두", 아니면 "Discord DM", 결정 0067), "점검 5개 모두 정상입니다." …). 화면은 그대로 적는다 |
 | `steps[i].icon` | `string`. 구역의 아이콘 이름 |
 | `snapshot.setup.env[]` | `{ key, label, tone, detail, command }[]`. 환경 단계의 줄(설정 파일, 상주·브라우저·스크립트 샌드박스, 접속 API, 실행 환경 점검). `detail`은 상태, `command`는 사용자가 터미널에서 돌릴 명령(`null`이면 없음). 데몬은 샌드박스를 만들지도 설정 파일을 고치지도 않는다 |
 

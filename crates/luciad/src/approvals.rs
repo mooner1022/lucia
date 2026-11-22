@@ -1852,11 +1852,12 @@ impl<C: ChannelAdapter> ApprovalDesk<C> {
             tracing::warn!(platform = %press.platform, sender = %press.sender, "허용되지 않은 사람의 승인 버튼, 무시");
             return;
         }
-        // 앱(결정 0021)의 누름은 그 클라이언트에게 실제로 보인 카드에만 듣는다(다른 카드의 승인 ID를 넣어 누르지 못하게).
+        // 앱(결정 0021)의 누름은 그 승인의 카드에만 듣는다(다른 카드의 승인 ID를 넣어 누르지 못하게). 앱 대화의
+        // 카드는 모든 앱에 들어가므로(결정 0067) 어느 앱에서 눌러도 된다.
         if press.platform == crate::gateway::PLATFORM {
             let shown = self.store().approval(id).ok().flatten().is_some_and(|a| {
                 a.card_ref.as_deref() == Some(press.message_ref.as_str())
-                    && crate::gateway::client_of(&press.message_ref) == Some(press.sender.as_str())
+                    && crate::gateway::ref_shown_to(&press.message_ref, &press.sender)
             });
             if !shown {
                 tracing::warn!(id, card = %press.message_ref, "앱 누름의 카드 참조가 맞지 않는다, 무시");

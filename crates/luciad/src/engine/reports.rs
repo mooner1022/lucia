@@ -167,7 +167,7 @@ impl<R: AgentRunner, C: ChannelAdapter> Engine<R, C> {
         if body.is_empty() || body == "-" {
             return Ok(ReportOutcome::Quiet);
         }
-        let sent = self
+        let delivered = self
             .deliver(
                 &notify,
                 crate::segments::split(&body),
@@ -175,10 +175,10 @@ impl<R: AgentRunner, C: ChannelAdapter> Engine<R, C> {
                 Some(&run_id),
             )
             .await?;
-        let joined = crate::segments::join(&sent);
+        let joined = crate::segments::join(&delivered.sent);
         {
             let store = self.store();
-            store.add_episode(&NewEpisode {
+            let id = store.add_episode(&NewEpisode {
                 at: finished,
                 kind: EpisodeKind::AgentReport,
                 origin: Origin::Agent,
@@ -187,6 +187,7 @@ impl<R: AgentRunner, C: ChannelAdapter> Engine<R, C> {
                 run_id: Some(run_id.clone()),
                 body: format!("[{request}] {joined}"),
             })?;
+            delivered.record(&store, id, &notify, finished);
             if !weekly {
                 rules::remember_evening(&store, &joined, finished);
             }

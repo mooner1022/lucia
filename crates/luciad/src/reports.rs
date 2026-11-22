@@ -272,6 +272,7 @@ impl SuggestionExec for InboundSuggestions {
                     received_at: Utc::now(),
                     reply_to: None,
                     venue: None,
+                    context: None,
                 })
                 .await
                 .map_err(|_| "데몬이 멈추는 중".to_owned())

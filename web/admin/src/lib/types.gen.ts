@@ -108,9 +108,11 @@ export interface Snapshot {
     ui: {
       has_app_tools: boolean;
       has_browser_handover: boolean;
+      has_owner_files: boolean;
       has_push_token: boolean;
       has_security_mode: boolean;
       is_app: boolean;
+      is_notify_target: boolean;
       role_label: string;
       scope_labels: Array<string>;
     };
@@ -771,6 +773,7 @@ export interface Consts {
     max_categories: number;
   };
   gateway: {
+    all_apps: string;
     app_role: string;
     roles: Array<{
       key: string;
@@ -778,6 +781,7 @@ export interface Consts {
     }>;
     scope_app_tools: string | null;
     scope_browser_handover: string | null;
+    scope_owner_files: string | null;
     scope_security_mode: string | null;
     scopes: Array<{
       key: string;

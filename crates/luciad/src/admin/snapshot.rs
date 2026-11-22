@@ -360,7 +360,7 @@ pub struct ImagesView {
 /// 앱 연동(결정 0043).
 #[derive(Debug, Clone, Default, serde::Serialize)]
 pub struct AppView {
-    /// 알림·승인 카드를 받을 앱(없으면 Discord DM).
+    /// 알림·승인 카드를 받을 앱(없으면 Discord DM). 앱 모두로 정했으면 `*`(결정 0066).
     pub notify_client: Option<String>,
     /// 푸시에 글 미리보기를 싣나.
     pub push_preview: bool,

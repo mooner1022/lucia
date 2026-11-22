@@ -81,6 +81,7 @@
       "max_categories": 20
     },
     "gateway": {
+      "all_apps": "*",
       "app_role": "app",
       "roles": [
         {
@@ -94,6 +95,7 @@
       ],
       "scope_app_tools": "app_tools",
       "scope_browser_handover": "browser_handover",
+      "scope_owner_files": "owner_files",
       "scope_security_mode": "security_mode",
       "scopes": [
         {
@@ -107,6 +109,10 @@
         {
           "key": "browser_handover",
           "label": "브라우저 화면 넘겨받기"
+        },
+        {
+          "key": "owner_files",
+          "label": "Discord DM의 파일 받기"
         }
       ]
     },
@@ -544,7 +550,7 @@
     "app": {
       "fcm_project": "qz-fcm-project",
       "fcm_ready": true,
-      "notify_client": "qz-client-a",
+      "notify_client": "*",
       "push_preview": true
     },
     "approval_ttl_hours": 24,
@@ -723,9 +729,11 @@
           "ui": {
             "has_app_tools": false,
             "has_browser_handover": false,
+            "has_owner_files": false,
             "has_push_token": true,
             "has_security_mode": true,
             "is_app": true,
+            "is_notify_target": true,
             "role_label": "앱",
             "scope_labels": [
               "권한 모드 바꾸기(/권한)"
@@ -749,9 +757,11 @@
           "ui": {
             "has_app_tools": false,
             "has_browser_handover": false,
+            "has_owner_files": false,
             "has_push_token": false,
             "has_security_mode": false,
             "is_app": false,
+            "is_notify_target": false,
             "role_label": "기기",
             "scope_labels": []
           }
@@ -773,9 +783,11 @@
           "ui": {
             "has_app_tools": false,
             "has_browser_handover": false,
+            "has_owner_files": false,
             "has_push_token": false,
             "has_security_mode": false,
             "is_app": true,
+            "is_notify_target": false,
             "role_label": "앱",
             "scope_labels": []
           }
@@ -1703,7 +1715,7 @@
           "key": "app",
           "state": "done",
           "state_label": "완료",
-          "summary": "앱 토큰 1개 · 알림 받는 곳 앱 qz-client-a-name · 푸시 켜짐",
+          "summary": "앱 토큰 1개 · 알림 받는 곳 앱 모두 · 푸시 켜짐",
           "title": "앱과 푸시",
           "tone": "ok"
         },

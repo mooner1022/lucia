@@ -21,6 +21,7 @@ mod inbox;
 mod ledger;
 pub mod maintenance;
 mod memory;
+mod notes;
 mod notices;
 mod routines;
 mod schedules;
@@ -41,7 +42,7 @@ pub use admin::{Alert, keys};
 pub use approvals::{Activity, Approval, ApprovalStatus, Decided, NewApproval};
 pub use character::CharacterRevision;
 pub use clients::{Client, OutboxFrame};
-pub use episodes::{Episode, EpisodeKind, NewEpisode, Origin};
+pub use episodes::{Episode, EpisodeFile, EpisodeKind, EpisodeShape, NewEpisode, Origin};
 pub use expressions::{
     Expression, ExpressionCategory, ExpressionFile, name_key as expression_name_key,
 };
@@ -60,6 +61,7 @@ pub mod memory_limits {
         BODY_MAX_BYTES, MAX_ENTRIES, REASON_MAX, SLUG_MAX, SUMMARY_MAX, TITLE_MAX,
     };
 }
+pub use notes::{MAX_NOTES, Note, NotePut};
 pub use notices::Notice;
 pub use routines::{MAX_ROUTINES, NewRoutine, Routine, RoutineRun, RoutineStatus, Trigger};
 pub use schedules::{Schedule, ScheduleKind, ScheduleOutcome};
@@ -116,6 +118,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../migrations/0027_image_inputs.sql"),
     include_str!("../migrations/0028_inbox.sql"),
     include_str!("../migrations/0029_kept_files.sql"),
+    include_str!("../migrations/0030_desk_api.sql"),
 ];
 
 #[derive(Debug, thiserror::Error)]

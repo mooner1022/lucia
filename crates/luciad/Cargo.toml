@@ -49,3 +49,5 @@ futures-util = { version = "0.3.34", default-features = false, features = ["sink
 
 [dev-dependencies]
 tower = { version = "0.5.3", features = ["util"] }
+# 시간을 멈춘 시험(결정 0066: 넘기기 2분, 앱 기능 120초를 실제로 기다리지 않는다).
+tokio = { version = "1.54.1", features = ["test-util"] }

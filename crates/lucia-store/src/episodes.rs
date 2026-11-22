@@ -139,7 +139,105 @@ fn finish(raw: RawEpisode) -> Result<Episode> {
     })
 }
 
+/// 에피소드에 붙은 파일 하나(결정 0066). 파일이 지워져도 이름이 남게 그때의 정보를 둔다.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct EpisodeFile {
+    pub id: String,
+    pub name: String,
+    pub size: u64,
+    pub mime: String,
+    pub kind: String,
+}
+
+impl From<&crate::FileRecord> for EpisodeFile {
+    fn from(f: &crate::FileRecord) -> Self {
+        Self {
+            id: f.id.clone(),
+            name: f.name.clone(),
+            size: f.size,
+            mime: f.mime.clone(),
+            kind: f.kind.clone(),
+        }
+    }
+}
+
+/// 말 하나의 모양(결정 0066): 여러 프레임으로 나뉘어 갔으면 그 조각들, 붙은 파일.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct EpisodeShape {
+    /// 둘 이상으로 나뉘어 갔을 때만(보낸 차례). 하나로 갔으면 `None`.
+    pub parts: Option<Vec<String>>,
+    pub files: Vec<EpisodeFile>,
+}
+
 impl Store {
+    /// 에피소드의 모양을 남긴다(결정 0066). 조각이 하나뿐이고 파일도 없으면 남기지 않는다. 붙은 파일은 그 대화가
+    /// 받을 수 있게 한다([`Store::grant_file`]).
+    pub fn set_episode_shape(
+        &self,
+        episode_id: i64,
+        conversation: Option<&str>,
+        parts: &[String],
+        files: &[EpisodeFile],
+        now: DateTime<Utc>,
+    ) -> Result<()> {
+        let parts = (parts.len() > 1).then_some(parts);
+        if parts.is_none() && files.is_empty() {
+            return Ok(());
+        }
+        let parts_json = parts
+            .map(|p| serde_json::to_string(p).map_err(|e| StoreError::Corrupt(e.to_string())))
+            .transpose()?;
+        let files_json =
+            serde_json::to_string(files).map_err(|e| StoreError::Corrupt(e.to_string()))?;
+        self.conn.execute(
+            "INSERT INTO episode_shapes (episode_id, parts, files) VALUES (?1, ?2, ?3)
+             ON CONFLICT (episode_id) DO UPDATE SET parts = excluded.parts, files = excluded.files",
+            params![episode_id, parts_json, files_json],
+        )?;
+        if let Some(conversation) = conversation {
+            for f in files {
+                self.grant_file(&f.id, conversation, now)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// 여러 에피소드의 모양(남긴 것만).
+    pub fn episode_shapes(
+        &self,
+        ids: &[i64],
+    ) -> Result<std::collections::HashMap<i64, EpisodeShape>> {
+        let mut out = std::collections::HashMap::new();
+        if ids.is_empty() {
+            return Ok(out);
+        }
+        let marks = (1..=ids.len())
+            .map(|i| format!("?{i}"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let mut stmt = self.conn.prepare(&format!(
+            "SELECT episode_id, parts, files FROM episode_shapes WHERE episode_id IN ({marks})"
+        ))?;
+        let rows = stmt.query_map(rusqlite::params_from_iter(ids.iter()), |r| {
+            Ok((
+                r.get::<_, i64>(0)?,
+                r.get::<_, Option<String>>(1)?,
+                r.get::<_, String>(2)?,
+            ))
+        })?;
+        for r in rows {
+            let (id, parts, files) = r?;
+            let parts = parts
+                .map(|p| serde_json::from_str::<Vec<String>>(&p))
+                .transpose()
+                .map_err(|e| StoreError::Corrupt(format!("episode shape parts: {e}")))?;
+            let files: Vec<EpisodeFile> = serde_json::from_str(&files)
+                .map_err(|e| StoreError::Corrupt(format!("episode shape files: {e}")))?;
+            out.insert(id, EpisodeShape { parts, files });
+        }
+        Ok(out)
+    }
+
     pub fn add_episode(&self, e: &NewEpisode) -> Result<i64> {
         self.conn.execute(
             "INSERT INTO episodes (at, kind, origin, conversation, session_id, run_id, body)
@@ -272,10 +370,16 @@ impl Store {
     /// `before`보다 오래된 원본 에피소드를 지운다(하루 정리, 결정 0016). 세션 교대 요약(`RotationSummary`)은
     /// 남긴다(긴 맥락을 이어 주는 요약이다). 지운 수를 돌려준다. 되돌릴 수 없으므로 사용자가 보관 기간을 정했을 때만 부른다.
     pub fn delete_episodes_before(&self, before: DateTime<Utc>) -> Result<usize> {
-        Ok(self.conn.execute(
+        let n = self.conn.execute(
             "DELETE FROM episodes WHERE at < ?1 AND kind != ?2",
             params![ts(before), EpisodeKind::RotationSummary.as_str()],
-        )?)
+        )?;
+        // 모양(결정 0066)도 함께 지운다.
+        self.conn.execute(
+            "DELETE FROM episode_shapes WHERE episode_id NOT IN (SELECT id FROM episodes)",
+            [],
+        )?;
+        Ok(n)
     }
 
     /// 가장 최근 `kind` 에피소드의 시각.

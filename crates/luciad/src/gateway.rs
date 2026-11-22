@@ -14,12 +14,16 @@
 //! - **넓히기**: 앱이 부르는 메서드(`call`)는 등록표([`AppMethod`])로, 데몬이 앱에 부탁하는 일(`invoke`)은 앱이
 //!   hello에서 알린 기능(`features`)으로 정한다. 앱에서만 되는 연동은 여기에 하나씩 더한다.
 //! - **채널**: 앱의 대화는 `app:<클라이언트>`다. 엔진은 [`RouterChannel`]을 받아 대화 ID로 Discord와 앱을 가른다.
-//!   관리 페이지에서 앱을 "알림 받을 곳"으로 정하면 브리핑·알림·승인 카드를 그 앱 대화로 보낸다([`NotifyTarget`]).
-//!   앱이 끊겨 있고 푸시도 없으면 Discord DM으로 간다.
+//!   앱은 기기가 여럿이어도 한 대화다(결정 0067): 앱 대화의 프레임은 모든 앱의 상자에 들어가고, 사용자가 한 앱에서
+//!   한 말은 다른 앱에 `sent`로 간다. "알림 받을 곳"을 앱으로 정하면 브리핑·알림·승인 카드를 앱 모두(`app:*`)에
+//!   둔다([`NotifyTarget`]). 닿는 앱이 하나도 없으면 Discord DM으로 간다.
 
+mod alerts;
 mod handover;
 mod http;
 mod methods;
+mod notes;
+mod tasks;
 
 // 앱에서만 되는 연동 모듈이 메서드를 구현할 때 쓴다(지금은 기본 메서드뿐).
 pub use handover::Handover;
@@ -101,11 +105,15 @@ pub mod scopes {
     pub const APP_TOOLS: &str = "app_tools";
     /// 브라우저 화면 넘겨받기를 앱에서(결정 0063): 로그인된 브라우저를 보고 조작한다. 기본은 없다.
     pub const BROWSER_HANDOVER: &str = "browser_handover";
+    /// Discord 알림 대화(DM)의 파일 받기(결정 0066). 다른 앱 대화의 파일은 범위 없이 받는다(결정 0067: 앱 대화는
+    /// 하나). 토큰이 새면 DM으로 받은 파일을 모두 내려받을 수 있게 되어 기본은 없다.
+    pub const OWNER_FILES: &str = "owner_files";
     /// (이름, 관리 페이지 설명).
     pub const ALL: &[(&str, &str)] = &[
         (SECURITY_MODE, "권한 모드 바꾸기(/권한)"),
         (APP_TOOLS, "Lucia가 앱 기능 부르기"),
         (BROWSER_HANDOVER, "브라우저 화면 넘겨받기"),
+        (OWNER_FILES, "Discord DM의 파일 받기"),
     ];
 }
 
@@ -142,9 +150,45 @@ impl Role {
     }
 }
 
+/// 상태 알림(결정 0066): 사람의 말이 아니라 데몬이 아는 상태의 바뀜(예: 사용자가 앱에서 화면 보여 주기를 켰다).
+/// 그 대화의 다음 요청에 한 번 싣는다(엔진이 [`take_status_notes`]로 꺼낸다). 대화마다 최근 [`STATUS_NOTES_MAX`]개.
+static STATUS_NOTES: std::sync::LazyLock<Mutex<HashMap<String, Vec<String>>>> =
+    std::sync::LazyLock::new(Default::default);
+const STATUS_NOTES_MAX: usize = 8;
+
+/// 대화에 상태 알림 한 줄을 남긴다(다음 요청에 실린다).
+pub fn push_status_note(conversation: &str, note: &str) {
+    let mut notes = STATUS_NOTES.lock().expect("status notes lock");
+    let list = notes.entry(conversation.to_owned()).or_default();
+    list.push(note.to_owned());
+    if list.len() > STATUS_NOTES_MAX {
+        let extra = list.len() - STATUS_NOTES_MAX;
+        list.drain(..extra);
+    }
+}
+
+/// 대화의 상태 알림을 꺼낸다(꺼내면 지워진다). 오래된 것부터.
+pub fn take_status_notes(conversation: &str) -> Vec<String> {
+    STATUS_NOTES
+        .lock()
+        .expect("status notes lock")
+        .remove(conversation)
+        .unwrap_or_default()
+}
+
 /// 앱 클라이언트의 대화 ID.
 pub fn conversation(client_id: &str) -> ConversationId {
     ConversationId(format!("{PLATFORM}:{client_id}"))
+}
+
+/// "앱 모두"(결정 0066): 알림 받을 곳을 앱 모두로 두면 그 대화는 `app:*`이고, 카드 참조는 `app:*:<카드>`다.
+/// [`client_of`]는 이것에 `Some("*")`를 돌려준다.
+pub const ALL_APPS: &str = "*";
+
+/// 이 카드 참조가 이 앱 클라이언트에게 보인 것인가. 앱 대화는 하나라(결정 0067) 앱 대화의 카드(`app:<클라이언트>:…`,
+/// `app:*:…`)는 모든 앱의 상자에 들어가고 어느 앱에서 눌러도 된다. 누름은 앱 역할의 연결에서만 온다.
+pub fn ref_shown_to(message_ref: &str, _client_id: &str) -> bool {
+    client_of(message_ref).is_some()
 }
 
 /// 앱 대화 ID나 카드 참조(`app:<클라이언트>[:<카드>]`)의 클라이언트.
@@ -191,26 +235,33 @@ pub fn local_peer(ip: IpAddr) -> bool {
     }
 }
 
-/// 알림을 받을 앱 클라이언트(관리 페이지에서 정한 것, 취소되지 않은 app 역할만).
+/// 알림을 앱으로 받는가(관리 페이지에서 정한 것): 그러면 취소되지 않은 앱이 하나라도 있을 때 [`ALL_APPS`].
+/// 앱 대화는 하나라(결정 0067) 예전에 저장한 앱 하나의 ID도 앱 모두로 읽는다.
 pub fn notify_client(store: &Store) -> Option<String> {
-    let id = store.setting(keys::NOTIFY_CLIENT).ok().flatten()?;
+    store.setting(keys::NOTIFY_CLIENT).ok().flatten()?;
+    active_apps(store).first().map(|_| ALL_APPS.to_owned())
+}
+
+/// 취소되지 않은 앱 클라이언트(기기 역할은 빼고).
+pub fn active_apps(store: &Store) -> Vec<lucia_store::Client> {
     store
-        .active_client(&id)
-        .ok()
-        .flatten()
-        .filter(|c| c.role == Role::App.as_str())
-        .map(|c| c.id)
+        .clients()
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|c| c.revoked_at.is_none() && c.role == Role::App.as_str())
+        .collect()
 }
 
 /// 알림 받을 앱이 화면 넘겨받기를 쓸 수 있는가(결정 0063, 안내 글에 쓴다): 그 앱 토큰에 범위가 있다.
+/// 앱 모두이면 범위가 있는 앱이 하나라도 있을 때.
 pub fn notify_app_can_handover(store: &Store) -> bool {
-    notify_client(store)
-        .and_then(|id| store.active_client(&id).ok().flatten())
-        .is_some_and(|c| c.scopes.iter().any(|s| s == scopes::BROWSER_HANDOVER))
+    let has = |c: &lucia_store::Client| c.scopes.iter().any(|s| s == scopes::BROWSER_HANDOVER);
+    // 알림을 앱으로 받으면 늘 앱 모두다(결정 0067).
+    notify_client(store).is_some() && active_apps(store).iter().any(has)
 }
 
-/// 소유자에게 알릴 곳을 읽는 곳(엔진의 브리핑·알림, 승인 카드, 로그인 안내 등)이 쓴다(결정 0043): 알림 받을 앱을
-/// 정했으면 그 앱 대화, 아니면 관리 페이지의 알림 대화(Discord DM). 앱이 끊겨 있고 푸시도 없으면 [`RouterChannel`]이
+/// 소유자에게 알릴 곳을 읽는 곳(엔진의 브리핑·알림, 승인 카드, 로그인 안내 등)이 쓴다(결정 0043·0067): 알림을 앱으로
+/// 받으면 앱 모두(`app:*`), 아니면 관리 페이지의 알림 대화(Discord DM). 닿는 앱이 하나도 없으면 [`RouterChannel`]이
 /// Discord DM으로 돌린다. 소유자가 Discord DM에서 직접 한 대화의 답은 그 DM으로 간다(대화 ID로 가르지 않는다).
 pub trait NotifyTarget {
     fn notify_conversation(&self) -> Option<String>;
@@ -241,6 +292,28 @@ pub struct PushJob {
     pub high: bool,
 }
 
+/// 앱 기능을 언제 부르는가(결정 0066, `hello.tools[].when`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum When {
+    /// 지금과 같다: 읽기는 어디서든, 쓰기(`effect: "write"`)는 사람이 대화 중일 때.
+    Any,
+    /// 읽기든 쓰기든 사람이 대화 중인 실행에서만.
+    Attended,
+    /// 사람이 이 앱의 대화에서 말하고 있을 때만(Discord에서 말하는 중에 PC 화면을 찍지 않게).
+    Here,
+}
+
+impl When {
+    /// 빠지면 `Any`, 모르는 값은 가장 좁게(`Here`).
+    fn parse(v: &Value) -> Self {
+        match v.as_str() {
+            None => Self::Any,
+            Some("attended") => Self::Attended,
+            Some(_) => Self::Here,
+        }
+    }
+}
+
 /// 앱이 Lucia에게 내주는 기능 하나(결정 0053). 앱이 `hello.tools`로 알린다.
 #[derive(Debug, Clone, PartialEq)]
 pub struct AppTool {
@@ -251,13 +324,26 @@ pub struct AppTool {
     pub params: Value,
     /// 무엇을 바꾸는 기능이다(사람이 대화 중일 때만 부른다).
     pub write: bool,
+    /// 언제 부르는가(결정 0066).
+    pub when: When,
+    /// 앱의 답을 기다리는 시간(결정 0066, `tools[].timeout`. 사용자에게 묻는 동작은 길다).
+    pub timeout: Duration,
 }
 
 const MAX_APP_TOOLS: usize = 32;
 const APP_TOOL_DESCRIPTION_CHARS: usize = 200;
 const APP_TOOL_PARAMS_BYTES: usize = 2000;
-/// 앱 기능 하나를 기다리는 시간(MCP 요청이 60초쯤에 끊기기 전에 답한다).
+/// 앱 기능 하나를 기다리는 기본 시간(앱이 `timeout`을 알리지 않았을 때).
 pub const APP_CALL_TIMEOUT: Duration = Duration::from_secs(40);
+/// 앱이 알릴 수 있는 가장 긴 기다림 [제안](결정 0066).
+pub const APP_CALL_TIMEOUT_MAX: Duration = Duration::from_secs(120);
+/// `app_call`·`app_result` 도구가 한 번에 기다리는 시간. MCP 요청은 60초쯤에 끊기므로, 더 걸리는 부탁은
+/// 데몬이 계속 기다리고 도구는 부탁 ID를 돌려준다(결정 0066, `imagegen`과 같은 방식).
+pub const APP_TOOL_WAIT: Duration = Duration::from_secs(45);
+/// 답을 받은 늦은 부탁을 남겨 두는 시간(`app_result`로 읽게).
+const LATE_KEEP: Duration = Duration::from_secs(600);
+/// 기능의 답에 실을 수 있는 파일 수 [제안](결정 0066).
+pub const MAX_RESULT_FILES: usize = 4;
 
 /// `hello.tools`를 정리한다: 이름은 `기능.동작`(소문자·숫자·`_`·`-`), 설명은 한 줄 200자, 인자 설명은 2 KB까지.
 fn clean_tools(list: Vec<Value>) -> Vec<AppTool> {
@@ -291,17 +377,92 @@ fn clean_tools(list: Vec<Value>) -> Vec<AppTool> {
             p if p.to_string().len() <= APP_TOOL_PARAMS_BYTES => p.clone(),
             _ => Value::Null,
         };
+        // 앱이 바라는 기다림(초). 1~120으로 맞추고, 없으면 기본값.
+        let timeout = v["timeout"]
+            .as_f64()
+            .filter(|s| s.is_finite() && *s > 0.0)
+            .map_or(APP_CALL_TIMEOUT, |s| {
+                Duration::from_secs(s.ceil() as u64)
+                    .clamp(Duration::from_secs(1), APP_CALL_TIMEOUT_MAX)
+            });
         out.push(AppTool {
             name,
             description,
             params,
             write: v["effect"].as_str() == Some("write"),
+            when: When::parse(&v["when"]),
+            timeout,
         });
         if out.len() >= MAX_APP_TOOLS {
             break;
         }
     }
     out
+}
+
+/// 도구 한 번이 기다릴 시간: 데몬의 기다림이 이 안에 끝나면 그 결과(시간 초과 포함)까지 본다.
+fn tool_wait(left: Duration) -> Duration {
+    if left <= APP_TOOL_WAIT {
+        left + Duration::from_secs(2)
+    } else {
+        APP_TOOL_WAIT
+    }
+}
+
+/// 이 부름에서 그 앱 기능을 부를 수 있는가(결정 0053·0066).
+fn allowed_now(tool: &AppTool, client_id: &str, caller: AppCaller<'_>) -> Result<(), CallError> {
+    match tool.when {
+        When::Any if tool.write && !caller.human => Err(CallError::new(
+            "forbidden",
+            "무엇을 바꾸는 앱 기능은 사용자가 대화 중일 때만 부른다",
+        )),
+        When::Any => Ok(()),
+        When::Attended if !caller.human => Err(CallError::new(
+            "forbidden",
+            "이 앱 기능은 사용자가 대화 중일 때만 부른다",
+        )),
+        When::Attended => Ok(()),
+        When::Here if caller.human && caller.chat == Some(conversation(client_id).0.as_str()) => {
+            Ok(())
+        }
+        When::Here => Err(CallError::new(
+            "forbidden",
+            "이 앱 기능은 사용자가 그 앱에서 대화하고 있을 때만 부른다(다른 곳에서 말하는 중에는 부르지 않는다)",
+        )),
+    }
+}
+
+/// 앱이 알린 사람의 자리(`presence`, 결정 0043·0066).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Presence {
+    /// 앱이 앞에 있다.
+    Foreground,
+    /// 앱이 뒤에 있다(데스크톱이면 창이 뒤에 있을 뿐 사람은 있다).
+    Background,
+    /// 사람이 기기 앞에 없다(오래 손대지 않음, 화면 잠금, 운영체제가 알림을 막음).
+    Away,
+}
+
+/// 앱이 알린 책상 상태(결정 0066, 번호 없는 `desk` 프레임). 허락이 아니라 알림이다.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Desk {
+    /// 화면을 찍어 줄 수 있다.
+    pub showing: bool,
+    /// 입력을 넣어 줄 수 있다(동행).
+    pub controlling: bool,
+    /// 저절로 끝나는 때.
+    pub until: Option<chrono::DateTime<Utc>>,
+}
+
+impl Desk {
+    /// 지금 시각으로 본 실제 상태(끝나는 때가 지났으면 둘 다 꺼짐).
+    pub fn at(&self, now: chrono::DateTime<Utc>) -> (bool, bool) {
+        if self.until.is_some_and(|u| u <= now) {
+            (false, false)
+        } else {
+            (self.showing, self.controlling)
+        }
+    }
 }
 
 /// 연결된 클라이언트 하나.
@@ -312,12 +473,63 @@ struct Conn {
     features: Vec<String>,
     /// 앱이 Lucia에게 내주는 기능(결정 0053).
     tools: Vec<AppTool>,
-    /// 앱이 뒤로 갔다고 알렸다(연결이 살아 있어도 푸시로 깨운다).
-    background: bool,
+    /// 앱이 알린 자리. 뒤(`background`)나 자리 비움(`away`)이면 연결이 살아 있어도 푸시로 깨운다.
+    presence: Presence,
+    /// 마지막으로 앞에 온 때(여러 앱이 앞에 있으면 가장 최근 것을 울린다, 결정 0066).
+    foreground_at: Instant,
+    /// 책상 상태(결정 0066). 알린 적이 없으면 `None`.
+    desk: Option<Desk>,
+    /// 마지막으로 상태 알림에 남긴 (화면 보여 주기, 동행).
+    desk_said: (bool, bool),
 }
 
+/// 앱 부탁의 답: 데이터와 앱이 실은 파일 ID(결정 0066, `result.files`).
+type InvokeReply = Result<(Value, Vec<String>), CallError>;
 /// 데몬이 앱에 부탁하고 기다리는 답(호출 ID → (클라이언트, 답 통로)).
-type Pending = HashMap<String, (String, oneshot::Sender<Result<Value, CallError>>)>;
+type Pending = HashMap<String, (String, oneshot::Sender<InvokeReply>)>;
+
+/// Lucia가 앱 기능을 부른 결과(결정 0053·0066).
+#[derive(Debug, Clone)]
+pub struct AppReply {
+    /// 부른 앱의 이름과 ID.
+    pub app: String,
+    pub client: String,
+    pub data: Value,
+    /// 앱이 답에 실은 파일(그 앱이 올린 것만).
+    pub files: Vec<lucia_store::FileRecord>,
+    /// 실었지만 쓸 수 없어 뺀 파일 수(남의 파일, 없는 ID, 넷 넘음).
+    pub dropped_files: usize,
+}
+
+/// `call_app`의 결과: 답이 왔거나, 앱이 아직 답하지 않아 데몬이 계속 기다린다(`app_result`로 본다).
+#[derive(Debug, Clone)]
+pub enum AppCall {
+    Done(AppReply),
+    Pending {
+        /// 부탁 ID(`d-…`).
+        id: String,
+        /// 앱 이름.
+        app: String,
+        /// 데몬이 더 기다리는 시간.
+        left: Duration,
+    },
+}
+
+/// 누가 앱 기능을 부르는가(결정 0066).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct AppCaller<'a> {
+    /// 사람이 대화 중인 실행이다.
+    pub human: bool,
+    /// 사람이 말하고 있는 대화(대화 실행일 때). `when: "here"`는 이것이 그 앱의 대화일 때만 부른다.
+    pub chat: Option<&'a str>,
+}
+
+/// 도구가 기다리다 만 부탁(결정 0066): 데몬이 계속 기다리고, 답이 오면 남겨 둔다.
+struct LateCall {
+    app: String,
+    deadline: tokio::time::Instant,
+    done: tokio::sync::watch::Receiver<Option<Result<AppReply, CallError>>>,
+}
 
 /// 접속 API. 연결을 받고, 앱 대화로 가는 글을 그 연결로 보낸다.
 pub struct Gateway {
@@ -354,6 +566,12 @@ pub struct Gateway {
     profile: OnceLock<Arc<crate::profile::Profile>>,
     /// 화면을 넘겨받을 브라우저(결정 0063). 브라우저를 켠 데몬에만 있다.
     handover: OnceLock<Arc<dyn Handover>>,
+    /// 도구가 기다리다 만 앱 부탁(결정 0066).
+    late: Mutex<HashMap<String, LateCall>>,
+    /// 알림을 앱 모두에 둘 때 울릴 곳과 넘기기(결정 0066).
+    alerts: Mutex<alerts::Alerts>,
+    /// 자기 자신(넘기기를 때맞춰 하는 작업이 쓴다).
+    me: OnceLock<std::sync::Weak<Gateway>>,
 }
 
 impl Gateway {
@@ -392,7 +610,11 @@ impl Gateway {
             expressions: OnceLock::new(),
             profile: OnceLock::new(),
             handover: OnceLock::new(),
+            late: Mutex::new(HashMap::new()),
+            alerts: Mutex::new(alerts::Alerts::default()),
+            me: OnceLock::new(),
         });
+        let _ = gw.me.set(Arc::downgrade(&gw));
         methods::register_builtin(&gw);
         gw
     }
@@ -495,6 +717,18 @@ impl Gateway {
 
     pub fn handover(&self) -> Option<&Arc<dyn Handover>> {
         self.handover.get()
+    }
+
+    /// 메모를 데몬에 두기(결정 0066): `notes.*` 메서드를 등록하고, 메모가 바뀌면 연결된 앱에 번호 없는 `notes`
+    /// 프레임을 보낸다. 데몬이 뜰 때 한 번만 부른다.
+    pub fn set_notes(self: &Arc<Self>, notes: Arc<crate::notes::Notes>) {
+        notes::register(self, notes);
+    }
+
+    /// 맡은 일 목록(결정 0066): `tasks.list` 메서드를 등록하고, 목록이 바뀌면(10초마다 본다) 연결된 앱에 번호
+    /// 없는 `tasks` 프레임을 보낸다. 데몬이 뜰 때 한 번만 부른다.
+    pub fn start_tasks(self: &Arc<Self>, cancel: CancellationToken) {
+        tasks::register(self, cancel);
     }
 
     /// 연결된 모든 앱에 번호 없는 프레임을 보낸다(상자에 넣지 않는다). 기기 연결은 이 표에 없다.
@@ -606,7 +840,10 @@ impl Gateway {
                 tx,
                 features,
                 tools,
-                background: false,
+                presence: Presence::Foreground,
+                foreground_at: Instant::now(),
+                desk: None,
+                desk_said: (false, false),
             },
         );
         (id, rx)
@@ -620,9 +857,11 @@ impl Gateway {
 
     fn detach(&self, client_id: &str, conn_id: u64) {
         let mut conns = self.conns.lock().expect("conns lock");
-        if conns.get(client_id).is_some_and(|c| c.id == conn_id) {
-            conns.remove(client_id);
-        }
+        let removed = if conns.get(client_id).is_some_and(|c| c.id == conn_id) {
+            conns.remove(client_id)
+        } else {
+            None
+        };
         drop(conns);
         // 그 연결에 부탁하고 기다리던 일은 끊겼다고 답한다.
         let mut pending = self.pending.lock().expect("pending lock");
@@ -636,6 +875,14 @@ impl Gateway {
                 let _ = tx.send(Err(CallError::new("offline", "앱 연결이 끊겼다")));
             }
         }
+        drop(pending);
+        // 새 연결이 대신한 것이 아니라 정말 끊겼으면: 책상 상태가 꺼지고, 그 앱이 울린 알림은 바로 넘긴다(결정 0066).
+        if let Some(conn) = removed {
+            if conn.desk_said != (false, false) {
+                self.desk_changed(client_id, conn.desk_said, (false, false), None, true);
+            }
+            self.left_desk(client_id);
+        }
     }
 
     /// 취소한 클라이언트의 연결을 끊는다.
@@ -643,7 +890,8 @@ impl Gateway {
         self.conns.lock().expect("conns lock").remove(client_id);
     }
 
-    fn set_background(&self, client_id: &str, conn_id: u64, background: bool) {
+    /// 앱이 알린 자리를 둔다. 앞으로 오면 그때를 적는다(여러 앱 가운데 가장 최근에 앞에 온 것을 울린다).
+    fn set_presence(&self, client_id: &str, conn_id: u64, presence: Presence) {
         if let Some(c) = self
             .conns
             .lock()
@@ -651,8 +899,110 @@ impl Gateway {
             .get_mut(client_id)
             .filter(|c| c.id == conn_id)
         {
-            c.background = background;
+            if presence == Presence::Foreground && c.presence != Presence::Foreground {
+                c.foreground_at = Instant::now();
+            }
+            c.presence = presence;
         }
+    }
+
+    /// 지금 연결의 자리(연결돼 있지 않으면 `None`).
+    pub fn presence(&self, client_id: &str) -> Option<Presence> {
+        self.conns
+            .lock()
+            .expect("conns lock")
+            .get(client_id)
+            .filter(|c| !c.tx.is_closed())
+            .map(|c| c.presence)
+    }
+
+    /// 앱이 알린 책상 상태를 둔다(결정 0066). 화면 보여 주기·동행이 켜지거나 꺼지면 활동 기록과 그 앱 대화의
+    /// 상태 알림에 남긴다(사람의 말이 아니다).
+    fn set_desk(&self, client: &lucia_store::Client, conn_id: u64, desk: Desk) {
+        let now = Utc::now();
+        let after = desk.at(now);
+        let before = {
+            let mut conns = self.conns.lock().expect("conns lock");
+            let Some(c) = conns.get_mut(&client.id).filter(|c| c.id == conn_id) else {
+                return;
+            };
+            // 켜짐은 지금 시각으로 본 상태와, 꺼짐은 마지막으로 남긴 값과 견준다: 끝나는 때가 지나 저절로 꺼진 뒤에
+            // 앱이 꺼짐을 알리면 그때 한 번 남기고, 다시 켜면 켬으로 남긴다.
+            let effective = c.desk.as_ref().map_or((false, false), |d| d.at(now));
+            let said = c.desk_said;
+            c.desk = Some(desk.clone());
+            c.desk_said = after;
+            let pick = |on: bool, eff: bool, was: bool| if on { eff } else { was };
+            (
+                pick(after.0, effective.0, said.0),
+                pick(after.1, effective.1, said.1),
+            )
+        };
+        if before != after {
+            self.desk_changed(&client.id, before, after, desk.until, false);
+        }
+    }
+
+    /// 책상 상태가 바뀐 것을 남긴다.
+    fn desk_changed(
+        &self,
+        client_id: &str,
+        before: (bool, bool),
+        after: (bool, bool),
+        until: Option<chrono::DateTime<Utc>>,
+        dropped: bool,
+    ) {
+        let name = self
+            .client(client_id)
+            .map_or_else(|| client_id.to_owned(), |c| c.name);
+        let until = until
+            .filter(|_| after.0 || after.1)
+            .map(|u| format!("({} UTC까지)", u.format("%Y-%m-%d %H:%M")))
+            .unwrap_or_default();
+        let mut lines = Vec::new();
+        for (what, was, is) in [
+            ("화면 보여 주기", before.0, after.0),
+            ("동행(Lucia가 컴퓨터를 움직이기)", before.1, after.1),
+        ] {
+            if was == is {
+                continue;
+            }
+            lines.push(if is {
+                format!("사용자가 앱 \"{name}\"에서 {what}를 켰다{until}.")
+            } else if dropped {
+                format!("앱 \"{name}\"의 연결이 끊겨 {what}가 꺼졌다.")
+            } else {
+                format!("앱 \"{name}\"에서 {what}가 꺼졌다.")
+            });
+        }
+        let conv = conversation(client_id).0;
+        for line in &lines {
+            push_status_note(&conv, line);
+            let _ = self.store.lock().expect("store lock").add_activity(
+                "app_desk",
+                line,
+                None,
+                Utc::now(),
+            );
+        }
+    }
+
+    /// 지금 연결된 앱의 책상 상태(알린 앱만): (클라이언트, 앱 이름, 상태).
+    pub fn desks(&self) -> Vec<(String, String, Desk)> {
+        let list: Vec<(String, Desk)> = self
+            .conns
+            .lock()
+            .expect("conns lock")
+            .iter()
+            .filter(|(_, c)| !c.tx.is_closed())
+            .filter_map(|(id, c)| c.desk.clone().map(|d| (id.clone(), d)))
+            .collect();
+        let mut out: Vec<(String, String, Desk)> = list
+            .into_iter()
+            .filter_map(|(id, d)| self.client(&id).map(|c| (id, c.name, d)))
+            .collect();
+        out.sort_by(|a, b| a.0.cmp(&b.0));
+        out
     }
 
     /// 지금 연결로만 보낸다(번호 없음: 답, 오류, 부탁).
@@ -662,15 +1012,13 @@ impl Gateway {
         conn.tx.send(frame).map_err(|_| ChannelError::Closed)
     }
 
-    /// 앱으로 갈 프레임을 상자에 넣고(번호를 매긴다) 연결돼 있으면 바로 보낸다. 끊겼거나 뒤로 가 있으면 푸시로
-    /// 깨운다. 상자에 넣었거나 바로 보냈으면 `Ok`.
-    fn deliver(
+    /// 프레임을 상자에 넣고(번호를 매긴다) 연결돼 있으면 바로 보낸다. (번호, 바로 보냈나, 그때의 자리).
+    fn put(
         &self,
         client_id: &str,
         kind: &str,
         mut frame: Value,
-        preview: &str,
-    ) -> Result<(), ChannelError> {
+    ) -> (Option<i64>, bool, Option<Presence>) {
         let stored = self.store.lock().expect("store lock").outbox_push(
             client_id,
             kind,
@@ -687,24 +1035,322 @@ impl Gateway {
                 None
             }
         };
-        let (sent, background) = {
-            let conns = self.conns.lock().expect("conns lock");
-            match conns.get(client_id) {
-                Some(c) if !c.tx.is_closed() => (c.tx.send(frame).is_ok(), c.background),
-                _ => (false, false),
-            }
+        let conns = self.conns.lock().expect("conns lock");
+        let (sent, presence) = match conns.get(client_id) {
+            Some(c) if !c.tx.is_closed() => (c.tx.send(frame).is_ok(), Some(c.presence)),
+            _ => (false, None),
         };
-        if let Some(seq) = seq
-            && (!sent || background)
-            && PUSH_KINDS.contains(&kind)
-        {
-            self.wake(client_id, kind, seq, preview);
+        (seq, sent, presence)
+    }
+
+    /// 앱 대화로 보낸다(결정 0067): 앱 하나(`app:<클라이언트>`)의 대화든 앱 모두([`ALL_APPS`])든 모든 앱의 상자에
+    /// 넣는다. 앱 하나의 대화이면 그 앱이 물은 곳이라 먼저 울린다.
+    fn deliver_to(
+        &self,
+        target: &str,
+        kind: &str,
+        frame: Value,
+        preview: &str,
+    ) -> Result<(), ChannelError> {
+        let origin = (target != ALL_APPS).then_some(target);
+        self.deliver_all(kind, frame, preview, origin)
+    }
+
+    /// 취소되지 않은 앱 클라이언트 ID.
+    fn app_clients(&self) -> Vec<String> {
+        active_apps(&self.store.lock().expect("store lock"))
+            .into_iter()
+            .map(|c| c.id)
+            .collect()
+    }
+
+    /// 지금 닿는가: 연결돼 있거나 푸시로 깨울 수 있다. 앱 모두면 그런 앱이 하나라도 있다.
+    pub fn reachable(&self, client_id: &str) -> bool {
+        if client_id == ALL_APPS {
+            return self
+                .app_clients()
+                .iter()
+                .any(|c| self.online(c) || self.can_push(c));
         }
-        if sent || seq.is_some() {
+        self.online(client_id) || self.can_push(client_id)
+    }
+
+    /// 앱 대화의 알림을 어디서 울리고 어디로 넘길지 고른다(결정 0066·0067, [`alerts`]).
+    /// (울릴 앱, 넘길 앱, 넘기기 전에 기다릴 시간).
+    ///
+    /// `origin`은 그 프레임이 속한 앱(그 앱에서 한 말의 답): 그 앱이 자리에 있으면 먼저 울린다(답은 물은 곳에서).
+    fn plan_ring(
+        &self,
+        apps: &[String],
+        card: bool,
+        origin: Option<&str>,
+    ) -> (Vec<String>, Vec<String>, Option<Duration>) {
+        let grace = if card {
+            alerts::CARD_GRACE
+        } else {
+            alerts::TEXT_GRACE
+        };
+        let online: Vec<(String, Presence, Instant)> = {
+            let conns = self.conns.lock().expect("conns lock");
+            apps.iter()
+                .filter_map(|id| {
+                    conns
+                        .get(id)
+                        .filter(|c| !c.tx.is_closed())
+                        .map(|c| (id.clone(), c.presence, c.foreground_at))
+                })
+                .collect()
+        };
+        let pushable: Vec<String> = apps.iter().filter(|c| self.can_push(c)).cloned().collect();
+        let others = |ring: &[String]| -> Vec<String> {
+            pushable
+                .iter()
+                .filter(|c| !ring.contains(c))
+                .cloned()
+                .collect()
+        };
+        // 0. 물은 앱(결정 0067): 앞에 있으면 그 앱, 푸시를 받는 앱이면 앞에 없어도 바로 그 앱(푸시로),
+        // 연결돼 있고 뒤에 있는 푸시 없는 앱(사람이 있는 데스크톱)이면 그 앱. 자리를 비웠거나 끊긴 푸시 없는 앱이면
+        // 아래 규칙으로 고른다.
+        if let Some(o) = origin.filter(|o| apps.iter().any(|a| a == o)) {
+            let presence = online.iter().find(|(id, _, _)| id == o).map(|(_, p, _)| *p);
+            let ring = vec![o.to_owned()];
+            match presence {
+                Some(Presence::Foreground) => {
+                    let forward = others(&ring);
+                    return (ring, forward, Some(grace));
+                }
+                _ if pushable.iter().any(|c| c == o) => return (ring, Vec::new(), None),
+                Some(Presence::Background) => {
+                    let forward = others(&ring);
+                    return (ring, forward, Some(grace));
+                }
+                _ => {}
+            }
+        }
+        // 1. 앞에 있는 앱(가장 최근에 앞에 온 것).
+        if let Some((front, _, _)) = online
+            .iter()
+            .filter(|(_, p, _)| *p == Presence::Foreground)
+            .max_by_key(|(_, _, at)| *at)
+        {
+            let ring = vec![front.clone()];
+            let forward = others(&ring);
+            return (ring, forward, Some(grace));
+        }
+        // 2. 사람이 있는(자리를 비우지 않은) 스스로 알리는 앱(푸시가 없는 데스크톱).
+        let present: Vec<String> = online
+            .iter()
+            .filter(|(id, p, _)| *p == Presence::Background && !pushable.contains(id))
+            .map(|(id, _, _)| id.clone())
+            .collect();
+        if !present.is_empty() {
+            let forward = others(&present);
+            return (present, forward, Some(grace));
+        }
+        // 3. 푸시를 받는 앱.
+        if !pushable.is_empty() {
+            return (pushable, Vec::new(), None);
+        }
+        // 4. 닿는 앱 모두(자리를 비웠어도 돌아오면 본다).
+        (
+            online.into_iter().map(|(id, _, _)| id).collect(),
+            Vec::new(),
+            None,
+        )
+    }
+
+    /// 앱 대화의 프레임을 모든 앱의 상자에 넣고(번호는 앱마다 제 것), 울릴 곳만 울린다(나머지는 `"alert": false`,
+    /// 결정 0066·0067). `origin`(앱 하나의 대화)이 있으면 다른 앱의 프레임에 `conversation`을 붙인다.
+    fn deliver_all(
+        &self,
+        kind: &str,
+        frame: Value,
+        preview: &str,
+        origin: Option<&str>,
+    ) -> Result<(), ChannelError> {
+        let apps = self.app_clients();
+        if apps.is_empty() {
+            return Err(ChannelError::Closed);
+        }
+        let alerting = PUSH_KINDS.contains(&kind);
+        let (ring, forward_to, grace) = if alerting {
+            self.plan_ring(&apps, kind == "card", origin)
+        } else {
+            (Vec::new(), Vec::new(), None)
+        };
+        let mut seqs = HashMap::new();
+        let mut any = false;
+        for app in &apps {
+            let mut f = frame.clone();
+            if let Some(o) = origin.filter(|o| *o != app.as_str()) {
+                // 다른 앱에서 한 말의 답(결정 0067). 예전 앱은 모르는 필드를 무시한다.
+                f["conversation"] = json!(conversation(o).0);
+            }
+            let rings = ring.contains(app);
+            if alerting && !rings {
+                f["alert"] = json!(false);
+            }
+            let (seq, sent, presence) = self.put(app, kind, f);
+            any |= sent || seq.is_some();
+            let Some(seq) = seq else { continue };
+            if !alerting {
+                continue;
+            }
+            seqs.insert(app.clone(), seq);
+            self.alerts.lock().expect("alerts lock").delivered(app, seq);
+            if rings && (!sent || presence != Some(Presence::Foreground)) {
+                self.wake(app, kind, seq, preview);
+            }
+        }
+        if alerting && !seqs.is_empty() {
+            let due = grace
+                .filter(|_| !forward_to.is_empty())
+                .map(|g| tokio::time::Instant::now() + g);
+            let rung_unpushed = ring.iter().any(|r| !self.can_push(r));
+            self.alerts.lock().expect("alerts lock").add(alerts::Item {
+                id: 0,
+                kind: kind.to_owned(),
+                preview: preview.chars().take(200).collect(),
+                seqs,
+                rung: ring,
+                rung_unpushed,
+                forward_to,
+                due,
+                seen: false,
+                forwarded: false,
+            });
+            if let Some(d) = due {
+                self.schedule_forward(d.saturating_duration_since(tokio::time::Instant::now()));
+            }
+        }
+        if any {
             Ok(())
         } else {
             Err(ChannelError::Closed)
         }
+    }
+
+    /// 사용자가 한 앱에서 한 말의 사본을 다른 앱의 상자에 넣는다(`sent`, 결정 0067: XEP-0280의 `<sent>`처럼 보낸
+    /// 앱은 뺀다). 울리지 않고 푸시하지 않는다.
+    fn carbon(&self, from: &lucia_store::Client, mut frame: Value) {
+        frame["type"] = json!("sent");
+        frame["conversation"] = json!(conversation(&from.id).0);
+        frame["from"] = json!({"client": from.id, "name": from.name});
+        frame["at"] = json!(Utc::now().to_rfc3339());
+        for app in self.app_clients() {
+            if app != from.id {
+                self.put(&app, "sent", frame.clone());
+            }
+        }
+    }
+
+    /// 이때가 지나면 넘길 것을 넘긴다.
+    fn schedule_forward(&self, after: Duration) {
+        let Some(me) = self.me.get().cloned() else {
+            return;
+        };
+        if tokio::runtime::Handle::try_current().is_err() {
+            return;
+        }
+        tokio::spawn(async move {
+            tokio::time::sleep(after + Duration::from_millis(50)).await;
+            if let Some(gw) = me.upgrade() {
+                gw.forward_due(None);
+            }
+        });
+    }
+
+    /// 울린 앱이 자리를 떴다(자리 비움, 끊김): 그 앱이 울린, 아직 보지 않은 알림을 바로 넘긴다.
+    fn left_desk(&self, client_id: &str) {
+        // 푸시를 받는 앱(휴대폰)은 뒤로 갈 때마다 끊긴다. `seen`을 말하지 않으면 봤는지 알 길이 없어 넘기지 않는다.
+        if self.can_push(client_id) && !self.alerts.lock().expect("alerts lock").speaks(client_id) {
+            return;
+        }
+        self.forward_due(Some(client_id));
+    }
+
+    fn forward_due(&self, left: Option<&str>) {
+        let due = self
+            .alerts
+            .lock()
+            .expect("alerts lock")
+            .take_due(tokio::time::Instant::now(), left);
+        for item in due {
+            self.forward(&item);
+        }
+    }
+
+    /// 알림 하나를 넘긴다: 그 앱의 상자에 이미 있는 프레임을 `alert` 프레임과(앞에 있지 않으면) 푸시로 알린다.
+    fn forward(&self, item: &alerts::Item) {
+        for target in &item.forward_to {
+            if item.rung.contains(target) {
+                continue;
+            }
+            let Some(seq) = item.seqs.get(target) else {
+                continue;
+            };
+            let presence = self.presence(target);
+            if presence.is_some() {
+                let _ = self.send_live(target, json!({"type": "alert", "seq": seq}));
+            }
+            if presence != Some(Presence::Foreground) {
+                self.wake(target, &item.kind, *seq, &item.preview);
+            }
+            tracing::info!(client = %target, seq, "보지 않은 알림을 다른 앱으로 넘겼다");
+        }
+    }
+
+    /// 앱이 이 번호까지 봤다고 알렸다(`seen`, 결정 0066).
+    fn seen(&self, client_id: &str, seq: i64) {
+        self.alerts
+            .lock()
+            .expect("alerts lock")
+            .mark_speaks(client_id);
+        let last = self
+            .store
+            .lock()
+            .expect("store lock")
+            .outbox_last(client_id)
+            .unwrap_or(0);
+        if seq <= 0 {
+            return;
+        }
+        self.mark_seen(client_id, seq.min(last));
+    }
+
+    /// 말이나 누름은 그 앞의 것을 본 것으로 친다(결정 0066). `seen`을 말하지 않는 앱도 그렇다.
+    fn seen_through_last(&self, client_id: &str) {
+        let last = self
+            .store
+            .lock()
+            .expect("store lock")
+            .outbox_last(client_id)
+            .unwrap_or(0);
+        if last > 0 {
+            self.mark_seen(client_id, last);
+        }
+    }
+
+    /// 본 것을 장부에 적고, 같은 알림을 가진 다른 앱에 알린다(끊긴 앱에는 알림을 지우는 푸시).
+    fn mark_seen(&self, client_id: &str, seq: i64) {
+        let tells = self
+            .alerts
+            .lock()
+            .expect("alerts lock")
+            .seen(client_id, seq);
+        for (app, upto) in tells {
+            if self.online(&app) {
+                let _ = self.send_live(&app, json!({"type": "seen", "seq": upto}));
+            } else {
+                self.push_clear(&app, upto);
+            }
+        }
+    }
+
+    /// 알림을 지우는 푸시(내용 없음, 결정 0066).
+    fn push_clear(&self, client_id: &str, seq: i64) {
+        self.wake(client_id, "clear", seq, "");
     }
 
     /// 푸시 작업자에게 깨우기를 맡긴다(토큰이 없거나 푸시를 쓸 수 없으면 넘어간다).
@@ -755,37 +1401,139 @@ impl Gateway {
         out
     }
 
-    /// 앱 기능 하나를 부른다(결정 0053). 그 기능을 내준, 범위가 있는 연결된 앱에 부탁한다. `client`를 주면 그 앱만.
-    /// 돌려주는 것은 (앱 이름, 결과).
+    /// 앱 기능 하나를 부른다(결정 0053·0066). 그 기능을 내준, 범위가 있는 연결된 앱에 부탁한다. `client`를 주면
+    /// 그 앱만. 여러 앱이 내주면 부를 수 있는 첫 앱(`when`을 거른다).
+    ///
+    /// 앱이 [`APP_TOOL_WAIT`] 안에 답하지 않으면 데몬은 그 기능의 `timeout`까지 계속 기다리고 `Pending`을
+    /// 돌려준다. 결과는 [`Gateway::app_result`]로 읽는다(MCP 요청이 60초쯤에 끊기기 때문이다).
     pub async fn call_app(
-        &self,
+        self: &Arc<Self>,
         method: &str,
         params: Value,
         client: Option<&str>,
-        human: bool,
-    ) -> Result<(String, Value), CallError> {
+        caller: AppCaller<'_>,
+    ) -> Result<AppCall, CallError> {
         let offered = self.app_tools();
-        let found = offered
+        let candidates: Vec<&(String, String, AppTool)> = offered
             .iter()
-            .find(|(id, _, t)| t.name == method && client.is_none_or(|c| c == id));
-        let Some((id, name, tool)) = found else {
+            .filter(|(id, _, t)| t.name == method && client.is_none_or(|c| c == id))
+            .collect();
+        if candidates.is_empty() {
             return Err(CallError::new(
                 "unsupported",
                 "그 기능을 내주는 앱이 지금 연결되어 있지 않다(app_tools로 지금 쓸 수 있는 것을 본다)",
             ));
-        };
-        if tool.write && !human {
-            return Err(CallError::new(
-                "forbidden",
-                "무엇을 바꾸는 앱 기능은 사용자가 대화 중일 때만 부른다",
-            ));
         }
-        let data = self.invoke(id, method, params, APP_CALL_TIMEOUT).await?;
-        Ok((name.clone(), data))
+        let mut refusal = None;
+        let mut chosen = None;
+        for c in candidates {
+            match allowed_now(&c.2, &c.0, caller) {
+                Ok(()) => {
+                    chosen = Some(c);
+                    break;
+                }
+                Err(e) => {
+                    refusal.get_or_insert(e);
+                }
+            }
+        }
+        let Some((id, name, tool)) = chosen else {
+            return Err(refusal.expect("후보가 있었다"));
+        };
+        let (call_id, rx) = self.invoke_start(id, method, params, tool.timeout)?;
+        let (done_tx, mut done_rx) = tokio::sync::watch::channel(None);
+        let deadline = tokio::time::Instant::now() + tool.timeout;
+        {
+            // 늦은 답을 받아 둘 자리. 도구가 먼저 돌아가도 데몬은 끝까지 기다린다.
+            let mut late = self.late.lock().expect("late lock");
+            late.retain(|_, l| l.deadline + LATE_KEEP > tokio::time::Instant::now());
+            late.insert(
+                call_id.clone(),
+                LateCall {
+                    app: name.clone(),
+                    deadline,
+                    done: done_rx.clone(),
+                },
+            );
+        }
+        let gw = self.clone();
+        let (client_id, app, wait) = (id.clone(), name.clone(), tool.timeout);
+        let waiter_id = call_id.clone();
+        tokio::spawn(async move {
+            let raw = gw.invoke_wait(&waiter_id, rx, wait).await;
+            let reply = raw.map(|(data, files)| gw.reply_files(&client_id, &app, data, &files));
+            let _ = done_tx.send(Some(reply));
+        });
+        let _ =
+            tokio::time::timeout(tool_wait(tool.timeout), done_rx.wait_for(Option::is_some)).await;
+        self.late_outcome(&call_id)
+            .unwrap_or_else(|| Err(CallError::new("failed", "부탁을 잃었다")))
+    }
+
+    /// 도구가 기다리다 만 부탁의 결과를 본다(결정 0066). 아직이면 [`APP_TOOL_WAIT`]까지 더 기다린다.
+    pub async fn app_result(&self, call_id: &str) -> Result<AppCall, CallError> {
+        let found = self
+            .late
+            .lock()
+            .expect("late lock")
+            .get(call_id.trim())
+            .map(|l| (l.done.clone(), l.deadline));
+        let Some((mut rx, deadline)) = found else {
+            return Err(CallError::new(
+                "not_found",
+                "그런 부탁이 없다(ID가 틀렸거나 기다림이 끝난 지 10분이 지났다)",
+            ));
+        };
+        let left = deadline.saturating_duration_since(tokio::time::Instant::now());
+        let _ = tokio::time::timeout(tool_wait(left), rx.wait_for(Option::is_some)).await;
+        self.late_outcome(call_id.trim())
+            .unwrap_or_else(|| Err(CallError::new("not_found", "그런 부탁이 없다")))
+    }
+
+    /// 지금 본 늦은 부탁의 상태.
+    fn late_outcome(&self, call_id: &str) -> Option<Result<AppCall, CallError>> {
+        let late = self.late.lock().expect("late lock");
+        let l = late.get(call_id)?;
+        let done = l.done.borrow().clone();
+        Some(match done {
+            Some(Ok(reply)) => Ok(AppCall::Done(reply)),
+            Some(Err(e)) => Err(e),
+            None => Ok(AppCall::Pending {
+                id: call_id.to_owned(),
+                app: l.app.clone(),
+                left: l
+                    .deadline
+                    .saturating_duration_since(tokio::time::Instant::now()),
+            }),
+        })
+    }
+
+    /// 앱이 답에 실은 파일 ID를 확인한다(결정 0066): 그 앱이 올린 파일만, [`MAX_RESULT_FILES`]개까지.
+    fn reply_files(&self, client_id: &str, app: &str, data: Value, ids: &[String]) -> AppReply {
+        let conv = conversation(client_id).0;
+        let mut files = Vec::new();
+        let mut dropped = 0;
+        for id in ids {
+            let found = self.files.get().and_then(|f| f.get(id)).filter(|f| {
+                f.direction == "in" && f.conversation.as_deref() == Some(conv.as_str())
+            });
+            match found {
+                Some(f) if files.len() < MAX_RESULT_FILES && !files.contains(&f) => files.push(f),
+                _ => dropped += 1,
+            }
+        }
+        AppReply {
+            app: app.to_owned(),
+            client: client_id.to_owned(),
+            data,
+            files,
+            dropped_files: dropped,
+        }
     }
 
     /// 데몬이 앱에 일을 부탁하고 답을 기다린다(`invoke` → `result`). 앱이 hello에서 알린 기능(메서드 이름의
     /// 첫 마디, 예: `location.get` → `location`)만 부른다. 앱에서만 되는 연동(위치, 휴대폰 알림 등)이 쓴다.
+    #[allow(dead_code)] // 앱에서만 되는 연동 모듈이 쓰는 자리(Lucia의 부름은 `call_app`).
     pub async fn invoke(
         &self,
         client_id: &str,
@@ -793,46 +1541,73 @@ impl Gateway {
         params: Value,
         timeout: Duration,
     ) -> Result<Value, CallError> {
+        let (id, rx) = self.invoke_start(client_id, method, params, timeout)?;
+        self.invoke_wait(&id, rx, timeout)
+            .await
+            .map(|(data, _)| data)
+    }
+
+    /// 부탁을 보낸다. 앱에는 기다릴 시간(`timeout`, 초)도 알린다(결정 0066: 그 안에 답하게).
+    fn invoke_start(
+        &self,
+        client_id: &str,
+        method: &str,
+        params: Value,
+        timeout: Duration,
+    ) -> Result<(String, oneshot::Receiver<InvokeReply>), CallError> {
         let feature = method.split('.').next().unwrap_or(method);
         let id = format!("d-{}", &uuid::Uuid::new_v4().simple().to_string()[..12]);
         let (tx, rx) = oneshot::channel();
-        {
-            let conns = self.conns.lock().expect("conns lock");
-            let conn = conns
-                .get(client_id)
-                .filter(|c| !c.tx.is_closed())
-                .ok_or_else(|| CallError::new("offline", "앱이 연결되어 있지 않다"))?;
-            if !conn.features.iter().any(|f| f == feature) {
-                return Err(CallError::new(
-                    "unsupported",
-                    &format!("앱이 {feature} 기능을 알리지 않았다"),
-                ));
-            }
-            self.pending
-                .lock()
-                .expect("pending lock")
-                .insert(id.clone(), (client_id.to_owned(), tx));
-            if conn
-                .tx
-                .send(json!({"type": "invoke", "id": id, "method": method, "params": params}))
-                .is_err()
-            {
-                self.pending.lock().expect("pending lock").remove(&id);
-                return Err(CallError::new("offline", "앱이 연결되어 있지 않다"));
-            }
+        let conns = self.conns.lock().expect("conns lock");
+        let conn = conns
+            .get(client_id)
+            .filter(|c| !c.tx.is_closed())
+            .ok_or_else(|| CallError::new("offline", "앱이 연결되어 있지 않다"))?;
+        if !conn.features.iter().any(|f| f == feature) {
+            return Err(CallError::new(
+                "unsupported",
+                &format!("앱이 {feature} 기능을 알리지 않았다"),
+            ));
         }
+        self.pending
+            .lock()
+            .expect("pending lock")
+            .insert(id.clone(), (client_id.to_owned(), tx));
+        let frame = json!({
+            "type": "invoke",
+            "id": id,
+            "method": method,
+            "params": params,
+            "timeout": timeout.as_secs(),
+        });
+        if conn.tx.send(frame).is_err() {
+            self.pending.lock().expect("pending lock").remove(&id);
+            return Err(CallError::new("offline", "앱이 연결되어 있지 않다"));
+        }
+        Ok((id, rx))
+    }
+
+    async fn invoke_wait(
+        &self,
+        id: &str,
+        rx: oneshot::Receiver<InvokeReply>,
+        timeout: Duration,
+    ) -> InvokeReply {
         match tokio::time::timeout(timeout, rx).await {
             Ok(Ok(result)) => result,
             Ok(Err(_)) => Err(CallError::new("offline", "앱 연결이 끊겼다")),
             Err(_) => {
-                self.pending.lock().expect("pending lock").remove(&id);
-                Err(CallError::new("timeout", "앱이 제때 답하지 않았다"))
+                self.pending.lock().expect("pending lock").remove(id);
+                Err(CallError::new(
+                    "timeout",
+                    "앱이 제때 답하지 않았다(사용자가 확인하지 않았을 수 있다)",
+                ))
             }
         }
     }
 
     /// 앱의 `result`: 그 앱에 부탁한 일에만 답으로 받는다.
-    fn resolve(&self, client_id: &str, id: &str, result: Result<Value, CallError>) -> bool {
+    fn resolve(&self, client_id: &str, id: &str, result: InvokeReply) -> bool {
         let mut pending = self.pending.lock().expect("pending lock");
         match pending.get(id) {
             Some((c, _)) if c == client_id => {
@@ -999,6 +1774,9 @@ enum ClientFrame {
         /// 목록에 있는 스티커 ID 하나(결정 0045).
         #[serde(default)]
         sticker: Option<String>,
+        /// 말과 따로 주는 맥락(결정 0066): 사용자가 고른 글 등. 외부 자료로 다룬다.
+        #[serde(default)]
+        context: Option<ContextFrame>,
         /// 앱이 붙인 ID(`accepted`에 그대로 돌려준다).
         #[serde(default)]
         id: Option<String>,
@@ -1017,9 +1795,22 @@ enum ClientFrame {
     Ack {
         seq: i64,
     },
-    /// 앱이 앞(`foreground`)이나 뒤(`background`)로 갔다.
+    /// 앱이 앞(`foreground`)이나 뒤(`background`)로 갔다. 사람이 자리를 비웠으면 `away`(결정 0066).
     Presence {
         state: String,
+    },
+    /// 책상 상태(결정 0066): 화면을 보여 줄 수 있는가, 입력을 넣어 줄 수 있는가, 언제 끝나는가.
+    Desk {
+        #[serde(default)]
+        showing: bool,
+        #[serde(default)]
+        controlling: bool,
+        #[serde(default)]
+        until: Option<String>,
+    },
+    /// 이 앱의 사용자가 이 번호까지 모두 봤다(결정 0066).
+    Seen {
+        seq: i64,
     },
     /// 앱 → 데몬 메서드 호출.
     Call {
@@ -1037,6 +1828,9 @@ enum ClientFrame {
         data: Value,
         #[serde(default)]
         error: Option<CallErrorFrame>,
+        /// 답에 싣는 파일(결정 0066): 앱이 먼저 올린 파일 ID.
+        #[serde(default)]
+        files: Vec<String>,
     },
     /// 이벤트(기기, 앱의 연동). 사람의 말이 아니라 외부 데이터로 신호 처리에 들어간다(결정 0031).
     Event {
@@ -1045,6 +1839,58 @@ enum ClientFrame {
         text: String,
     },
     Ping,
+}
+
+/// `message.context`(결정 0066).
+#[derive(Debug, Deserialize)]
+struct ContextFrame {
+    #[serde(default)]
+    selection: String,
+    #[serde(default)]
+    source: Option<ContextSource>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ContextSource {
+    #[serde(default)]
+    app: Option<String>,
+    #[serde(default)]
+    title: Option<String>,
+}
+
+/// 고른 글 상한 [제안](결정 0066)과 출처 글의 상한.
+const CONTEXT_SELECTION_MAX: usize = 4000;
+const CONTEXT_APP_MAX: usize = 100;
+const CONTEXT_TITLE_MAX: usize = 200;
+
+impl ContextFrame {
+    /// 다듬는다: 고른 글은 앞뒤 공백을 지우고 4000자로 자른다(비었으면 맥락이 없다). 출처는 한 줄로.
+    fn clean(self) -> Option<lucia_core::MessageContext> {
+        let selection = self.selection.trim();
+        if selection.is_empty() {
+            return None;
+        }
+        let one_line = |t: Option<String>, max: usize| {
+            t.map(|t| {
+                t.split_whitespace()
+                    .collect::<Vec<_>>()
+                    .join(" ")
+                    .chars()
+                    .take(max)
+                    .collect::<String>()
+            })
+            .filter(|t| !t.is_empty())
+        };
+        let source = self.source.unwrap_or(ContextSource {
+            app: None,
+            title: None,
+        });
+        Some(lucia_core::MessageContext {
+            selection: selection.chars().take(CONTEXT_SELECTION_MAX).collect(),
+            source_app: one_line(source.app, CONTEXT_APP_MAX),
+            source_title: one_line(source.title, CONTEXT_TITLE_MAX),
+        })
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -1320,7 +2166,8 @@ fn welcome_frame(
         "scopes": client.scopes,
         "methods": gw.method_names(client),
         "features": features,
-        "notify_target": notify.as_deref() == Some(client.id.as_str()),
+        "notify_target": notify.as_deref() == Some(client.id.as_str())
+            || notify.as_deref() == Some(ALL_APPS),
         "push": {
             "available": gw.push_ready(),
             "registered": client.push_token.is_some(),
@@ -1334,6 +2181,19 @@ fn welcome_frame(
             "attachments": gw.files.get().is_some(),
             "max_upload_bytes": crate::files::MAX_DOWNLOAD,
             "max_message_files": MAX_MESSAGE_FILES,
+            // 데스크톱 앱이 낸 확장(결정 0066).
+            "history_shape": 2,
+            "owner_files": true,
+            "tool_when": true,
+            "tool_files": true,
+            "short_files": gw.files.get().is_some(),
+            "tool_timeout": true,
+            "desk": true,
+            "presence_away": true,
+            "message_context": true,
+            "seen": true,
+            // 앱은 기기가 여럿이어도 한 대화(결정 0067): `sent` 프레임, 모든 앱의 기록.
+            "shared_conversation": true,
         },
     });
     // 이모지·스티커(결정 0045): 이 필드가 없으면 앱은 그 기능이 없는 데몬으로 본다.
@@ -1440,13 +2300,54 @@ async fn handle_frame(
                 .ack_client(client_id, seq);
             None
         }
-        ClientFrame::Presence { state } => match state.as_str() {
-            "foreground" | "background" => {
-                gw.set_background(client_id, conn_id, state == "background");
-                None
+        ClientFrame::Presence { state } => {
+            let presence = match state.as_str() {
+                "foreground" => Presence::Foreground,
+                "background" => Presence::Background,
+                "away" => Presence::Away,
+                _ => {
+                    return Some(error_frame(
+                        "bad_frame",
+                        "state는 foreground, background, away",
+                    ));
+                }
+            };
+            gw.set_presence(client_id, conn_id, presence);
+            // 자리를 떴다: `away`를 아는 앱은 새 규칙을 말한다. 기다리던 넘기기를 바로 한다(결정 0066).
+            if presence == Presence::Away {
+                gw.alerts
+                    .lock()
+                    .expect("alerts lock")
+                    .mark_speaks(client_id);
+                gw.left_desk(client_id);
             }
-            _ => Some(error_frame("bad_frame", "state는 foreground나 background")),
-        },
+            None
+        }
+        ClientFrame::Desk {
+            showing,
+            controlling,
+            until,
+        } => {
+            let until = until
+                .as_deref()
+                .and_then(|u| chrono::DateTime::parse_from_rfc3339(u).ok())
+                .map(|u| u.with_timezone(&Utc))
+                .filter(|_| showing || controlling);
+            gw.set_desk(
+                client,
+                conn_id,
+                Desk {
+                    showing,
+                    controlling,
+                    until,
+                },
+            );
+            None
+        }
+        ClientFrame::Seen { seq } => {
+            gw.seen(client_id, seq);
+            None
+        }
         ClientFrame::Event { key, text } => {
             // 앱의 연동(휴대폰 알림 등)이 보내는 이벤트: 소유자의 앱이어도 글은 외부 데이터다.
             Some(take_event(gw, budget, &client.name, key.as_deref(), &text))
@@ -1472,9 +2373,10 @@ async fn handle_frame(
             ok,
             data,
             error,
+            files,
         } => {
             let result = if ok {
-                Ok(data)
+                Ok((data, files))
             } else {
                 let e = error.unwrap_or(CallErrorFrame {
                     code: "failed".into(),
@@ -1492,6 +2394,7 @@ async fn handle_frame(
             text,
             files,
             sticker,
+            context,
             id,
         } => {
             let text = text.trim();
@@ -1533,10 +2436,18 @@ async fn handle_frame(
                 received_at: Utc::now(),
                 reply_to: None,
                 venue: None,
+                context: context.and_then(ContextFrame::clean),
             };
+            let carbon = sent_frame(gw, &msg, sticker.as_deref(), text);
             if gw.inbound.send(msg).await.is_err() {
                 return Some(error_frame("closed", "데몬이 멈추는 중"));
             }
+            // 다른 앱에 이 말의 사본을 넣는다(결정 0067).
+            if let Some(me) = gw.client(client_id) {
+                gw.carbon(&me, carbon);
+            }
+            // 말한 것은 그 앞의 것을 본 것으로 친다(결정 0066).
+            gw.seen_through_last(client_id);
             Some(json!({"type": "accepted", "id": id}))
         }
         ClientFrame::Press {
@@ -1545,9 +2456,9 @@ async fn handle_frame(
             input,
             inputs,
         } => {
-            // 자기 카드의 버튼만 누른다.
-            if client_of(&message_ref) != Some(client_id) {
-                return Some(error_frame("bad_ref", "이 연결의 카드가 아니다"));
+            // 앱 대화의 카드만 누른다(결정 0067: 앱은 한 대화라 어느 앱의 카드든).
+            if !ref_shown_to(&message_ref, client_id) {
+                return Some(error_frame("bad_ref", "앱 대화의 카드가 아니다"));
             }
             // 여러 칸의 값(결정 0063): 값을 다듬지 않는다(비밀번호의 앞뒤 공백도 값이다). 기록하지 않는다.
             let fields = match inputs.map(form_values) {
@@ -1571,6 +2482,8 @@ async fn handle_frame(
             if gw.presses.send(press).await.is_err() {
                 return Some(error_frame("closed", "데몬이 멈추는 중"));
             }
+            // 누른 것은 그 앞의 것을 본 것으로 친다(결정 0066).
+            gw.seen_through_last(client_id);
             None
         }
     }
@@ -1616,6 +2529,51 @@ fn form_values(
         out.insert(key, SecretText::new(value));
     }
     Ok(out)
+}
+
+/// 다른 앱에 넣을 사용자 말의 사본(`sent`, 결정 0067). 글, 파일(짧게 둔 것은 빼고), 스티커, 고른 글 표지(기록의
+/// 본문과 같은 줄).
+/// 보낸 앱·대화·시각은 [`Gateway::carbon`]이 붙인다.
+fn sent_frame(gw: &Gateway, msg: &Inbound, sticker: Option<&str>, text: &str) -> Value {
+    let files: Vec<Value> = msg
+        .attachments
+        .iter()
+        .filter_map(|a| a.url.strip_prefix(crate::files::APP_FILE_SCHEME))
+        .filter_map(|id| gw.files.get().and_then(|f| f.get(id)))
+        // 짧게 둔 파일(화면 사본, 결정 0066)은 다른 앱이 받지 못하므로 사본에 싣지 않는다.
+        .filter(|rec| {
+            gw.store
+                .lock()
+                .expect("store lock")
+                .file_expiry(&rec.id)
+                .ok()
+                .flatten()
+                .is_none()
+        })
+        .map(|rec| {
+            json!({
+                "id": rec.id,
+                "name": rec.name,
+                "size": rec.size,
+                "mime": rec.mime,
+                "kind": rec.kind,
+            })
+        })
+        .collect();
+    let mut frame = json!({"body": text});
+    if !files.is_empty() {
+        frame["files"] = json!(files);
+    }
+    if let Some(id) = sticker
+        && let Some(x) = gw.expressions()
+        && let Some(st) = x.catalog().sticker(id)
+    {
+        frame["sticker"] = json!({"id": st.id, "name": st.name});
+    }
+    if let Some(ctx) = &msg.context {
+        frame["context_note"] = json!(crate::engine::context_marker(ctx));
+    }
+    frame
 }
 
 /// 말에 붙인 파일 ID를 첨부로. 이 앱 대화로 올린 파일만 받는다.
@@ -1720,14 +2678,14 @@ impl ChannelAdapter for Gateway {
             Outbound::Text { body, .. } => {
                 let parts = split_message(&body, MAX_MESSAGE_CHARS);
                 for p in &parts {
-                    self.deliver(&client, "text", json!({"type": "text", "body": p}), p)?;
+                    self.deliver_to(&client, "text", json!({"type": "text", "body": p}), p)?;
                 }
                 Ok(parts.len())
             }
             Outbound::Note { body, .. } => {
                 let parts = split_message(&body, MAX_MESSAGE_CHARS);
                 for p in &parts {
-                    self.deliver(&client, "note", json!({"type": "note", "body": p}), p)?;
+                    self.deliver_to(&client, "note", json!({"type": "note", "body": p}), p)?;
                 }
                 Ok(parts.len())
             }
@@ -1743,18 +2701,31 @@ impl ChannelAdapter for Gateway {
                 let mut parts = split_message(&body, MAX_MESSAGE_CHARS);
                 let last = parts.pop().unwrap_or_default();
                 for p in &parts {
-                    self.deliver(&client, "text", json!({"type": "text", "body": p}), p)?;
+                    self.deliver_to(&client, "text", json!({"type": "text", "body": p}), p)?;
                 }
                 // 파일은 저장해 두고 ID로 알린다(앱은 `GET /v1/files/<ID>`로 받는다). 상자에 큰 덩어리를 넣지 않는다.
+                // 보관소에 이미 있는 파일이면 사본을 만들지 않고 그 ID를 이 대화가 받을 수 있게 한다(결정 0066:
+                // 기록의 `files`와 같은 ID).
                 let store = self
                     .files
                     .get()
                     .ok_or_else(|| ChannelError::Send("파일 저장소가 없다".into()))?;
                 let mut listed = Vec::new();
                 for f in &files {
-                    let rec = store
-                        .save("out", &f.name, &f.bytes, Some(&conversation.0), Utc::now())
-                        .map_err(ChannelError::Send)?;
+                    let known = f.id.as_deref().and_then(|id| store.get(id));
+                    let rec = match known {
+                        Some(rec) => {
+                            self.store
+                                .lock()
+                                .expect("store lock")
+                                .grant_file(&rec.id, &conversation.0, Utc::now())
+                                .map_err(|e| ChannelError::Send(e.to_string()))?;
+                            rec
+                        }
+                        None => store
+                            .save("out", &f.name, &f.bytes, Some(&conversation.0), Utc::now())
+                            .map_err(ChannelError::Send)?,
+                    };
                     listed.push(json!({
                         "id": rec.id,
                         "name": rec.name,
@@ -1768,7 +2739,7 @@ impl ChannelAdapter for Gateway {
                 } else {
                     last.clone()
                 };
-                self.deliver(
+                self.deliver_to(
                     &client,
                     "files",
                     json!({"type": "files", "body": last, "files": listed}),
@@ -1780,12 +2751,16 @@ impl ChannelAdapter for Gateway {
     }
 
     async fn typing(&self, conversation: &ConversationId) -> Result<(), ChannelError> {
-        let client = client_of(&conversation.0).ok_or(ChannelError::Closed)?;
-        // 입력 중 표시는 상자에 넣지 않는다(지나간 것을 다시 보일 까닭이 없다).
-        match self.send_live(client, json!({"type": "typing"})) {
-            Ok(()) | Err(ChannelError::Closed) => Ok(()),
-            Err(e) => Err(e),
+        client_of(&conversation.0).ok_or(ChannelError::Closed)?;
+        // 입력 중 표시는 상자에 넣지 않는다(지나간 것을 다시 보일 까닭이 없다). 앱 대화는 하나라(결정 0067) 연결된
+        // 앱 모두에.
+        for target in self.app_clients() {
+            match self.send_live(&target, json!({"type": "typing"})) {
+                Ok(()) | Err(ChannelError::Closed) => {}
+                Err(e) => return Err(e),
+            }
         }
+        Ok(())
     }
 
     async fn send_card(&self, card: Card) -> Result<String, ChannelError> {
@@ -1802,7 +2777,8 @@ impl ChannelAdapter for Gateway {
         } else {
             card.title.clone()
         };
-        self.deliver(
+        // 앱 모두에 두는 카드(결정 0066)는 참조가 `app:*:<카드>`라 어느 앱에서 눌러도 같은 카드다.
+        self.deliver_to(
             &client,
             "card",
             json!({"type": "card", "ref": message_ref, "card": card_json(&card)}),
@@ -1814,7 +2790,7 @@ impl ChannelAdapter for Gateway {
     /// 닫힘도 상자에 넣는다(다시 받을 때 열린 카드가 닫힌 것으로 바뀐다).
     async fn close_card(&self, message_ref: &str, card: &Card) -> Result<(), ChannelError> {
         let client = client_of(message_ref).ok_or(ChannelError::Closed)?;
-        match self.deliver(
+        match self.deliver_to(
             client,
             "card_closed",
             json!({"type": "card_closed", "ref": message_ref, "card": card_json(card)}),
@@ -1839,7 +2815,7 @@ impl ChannelAdapter for Gateway {
         let sticker = catalog
             .sticker(sticker_id)
             .ok_or_else(|| ChannelError::Send("목록에 없는 스티커".into()))?;
-        self.deliver(
+        self.deliver_to(
             client,
             "sticker",
             json!({"type": "sticker", "sticker": {"id": sticker.id, "name": sticker.name}}),
@@ -1902,7 +2878,8 @@ impl<D: ChannelAdapter> RouterChannel<D> {
         let Some(client) = client_of(&conversation.0) else {
             return Ok(Route::Primary);
         };
-        if self.gateway.online(client) || self.gateway.can_push(client) {
+        // 앱 대화는 하나라(결정 0067) 어느 앱이든 닿으면 앱으로 보낸다(모든 앱의 상자에 들어간다).
+        if self.gateway.reachable(ALL_APPS) {
             return Ok(Route::App(conversation.clone()));
         }
         tracing::info!(

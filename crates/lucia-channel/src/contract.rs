@@ -59,6 +59,7 @@ pub async fn notes_files_and_typing<H: ContractHarness>(h: &mut H, conversation:
         files: vec![lucia_core::OutFile {
             name: "메모.md".into(),
             bytes: "# 메모".as_bytes().to_vec(),
+            id: None,
         }],
     })
     .await
@@ -82,6 +83,7 @@ pub async fn notes_files_and_typing<H: ContractHarness>(h: &mut H, conversation:
                 .map(|i| lucia_core::OutFile {
                     name: format!("{i}.txt"),
                     bytes: vec![b'x'],
+                    id: None,
                 })
                 .collect(),
         })

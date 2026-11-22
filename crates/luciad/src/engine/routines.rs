@@ -372,6 +372,7 @@ impl<R: AgentRunner, C: ChannelAdapter> Engine<R, C> {
                 }),
                 goal: parent.as_ref().map(|p| p.goal.clone()),
                 goal_review: false,
+                chat: None,
             },
         );
         let mut attempt = first_id.clone();
@@ -448,12 +449,12 @@ impl<R: AgentRunner, C: ChannelAdapter> Engine<R, C> {
         if let Some(details) = report.details.as_deref() {
             parts.extend(crate::segments::split(details));
         }
-        let sent = self
+        let delivered = self
             .deliver(&notify, parts, &report.attachments, Some(&run_id))
             .await?;
-        let text = crate::segments::join(&sent);
+        let text = crate::segments::join(&delivered.sent);
         let store = self.store();
-        store.add_episode(&NewEpisode {
+        let id = store.add_episode(&NewEpisode {
             at: finished,
             kind: EpisodeKind::AgentReport,
             origin: Origin::Agent,
@@ -462,6 +463,7 @@ impl<R: AgentRunner, C: ChannelAdapter> Engine<R, C> {
             run_id: Some(run_id.clone()),
             body: format!("[루틴: {}] {text}", r.name),
         })?;
+        delivered.record(&store, id, &notify, finished);
         let short: String = summary.chars().take(200).collect();
         let _ = store.record_routine_wake(
             &r.id,

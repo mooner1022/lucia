@@ -647,7 +647,6 @@ link /skills/qz-sk-trial
 link /system
 link /work
 opt /app/notify client 
-opt /app/notify client qz-client-a
 opt /character/model model default
 opt /character/model model fable
 opt /character/model model haiku
